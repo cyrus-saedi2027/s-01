@@ -31,12 +31,15 @@ src/
       Marquee.tsx          seamless CSS ticker
       MagneticButton.tsx   pointer-following buttons, rotating circle button
       Cursor.tsx           custom pointer — two variants, see below
+      MarqueeLabel.tsx     section eyebrow as a masked ticker
+      ParallaxImage.tsx    image that drifts toward the pointer
       ScrollProgress.tsx   right-edge scroll indicator, auto-hiding
       Preloader.tsx        intro curtain with counter
-    sections/              Hero, About, Works, Solutions, Process,
-                           Testimonials, Awards, CTA, Footer
+    sections/              Hero, About, Works, CaseStudies, Solutions,
+                           Process, Testimonials, Awards, CTA, Footer
 scripts/
   generate-hero-art.mjs    draws the hero landscape
+  generate-artwork.mjs     draws panel, cover and gallery art
   build-standalone.mjs     inlines everything into one HTML file
 public/
   art/                     procedurally generated SVG artwork
@@ -121,6 +124,17 @@ Tokens live in `tailwind.config.ts`.
   frame, which is what made an earlier version stutter.
 - **Scroll indicator** — right edge, vertically centred, hidden until you
   scroll past a threshold and fading out about a second after you stop.
+- **Case studies** — each cover enters sheared over and unwinds to square as it
+  crosses the viewport, with the copy opposite rising off the same scroll
+  range. The rows sit in an `overflow-x-clip` wrapper: rotating a wide element
+  widens its footprint and would otherwise push the page sideways on narrow
+  screens. `clip` rather than `hidden`, because `hidden` creates a scroll
+  container and would break the sticky gallery below it.
+- **Gallery wall** — deliberately taller than the window it is seen through, so
+  even at rest it overflows its mask and the columns' parallax can never open a
+  gap. The middle column runs against the outer two. Centring is done by the
+  parent, not a transform, since Framer overwrites `transform` when animating
+  scale.
 - **The comet cursor never re-renders React.** One rAF loop reads the pointer's
   motion values and writes the path and rotation straight to the DOM. Driving
   them from state instead re-rendered ~120 times a second and stuttered, and

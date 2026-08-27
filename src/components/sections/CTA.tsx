@@ -4,6 +4,7 @@ import { AnimatedHeadline } from "../ui/AnimatedText";
 import { Reveal } from "../ui/Reveal";
 import { MagneticButton } from "../ui/MagneticButton";
 import { identity } from "@/data/site";
+import { MarqueeLabel } from "../ui/MarqueeLabel";
 
 const HEADLINE = [
   { text: "Ready", tone: "solid" as const },
@@ -43,11 +44,7 @@ export function CTA() {
 
       <div className="shell relative">
         <Reveal className="mb-10 flex justify-center">
-          <div className="eyebrow">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            Book a call
-            <span className="text-accent">—</span>
-          </div>
+          <MarqueeLabel text="Book a call" />
         </Reveal>
 
         <h2 className="mx-auto max-w-[16ch] text-center text-[clamp(2.5rem,7.5vw,8rem)] font-medium leading-[0.92] tracking-tighter">

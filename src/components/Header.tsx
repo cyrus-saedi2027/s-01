@@ -21,6 +21,7 @@ export function Header({
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
   const [hoverContact, setHoverContact] = useState(false);
+  const [hoverMark, setHoverMark] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const prev = scrollY.getPrevious() ?? 0;
@@ -42,12 +43,11 @@ export function Header({
       <div className="relative flex items-start justify-between px-[var(--shell-x)] py-5 md:py-6">
         <a
           href="#home"
-          className={cn(
-            "pointer-events-auto font-sans text-xs font-bold uppercase tracking-wide md:text-base",
-            "transition-colors duration-300 hover:text-accent"
-          )}
+          onMouseEnter={() => setHoverMark(true)}
+          onMouseLeave={() => setHoverMark(false)}
+          className="pointer-events-auto inline-flex font-sans text-xs font-bold uppercase tracking-wide md:text-base"
         >
-          Zayla
+          <HoverStaggerLabel text="Zayla" active={hoverMark} />
         </a>
 
         {/* Centred independently of the flanking items so it never drifts. */}

@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Reveal, MaskLine } from "../ui/Reveal";
 import { MagneticButton } from "../ui/MagneticButton";
 import { solutions } from "@/data/site";
+import { MarqueeLabel } from "../ui/MarqueeLabel";
+import { ParallaxImage } from "../ui/ParallaxImage";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -19,11 +21,7 @@ export function Solutions() {
         <div className="mb-14 flex flex-col gap-8 md:mb-20 md:flex-row md:items-end md:justify-between">
           <div>
             <Reveal className="mb-6">
-              <div className="eyebrow">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                Capabilities
-                <span className="text-accent">—</span>
-              </div>
+              <MarqueeLabel text="Capabilities" />
             </Reveal>
             <h2 className="text-[clamp(2.75rem,7vw,7.5rem)] font-medium leading-[0.9] tracking-tighter">
               <MaskLine>Solutions</MaskLine>
@@ -58,7 +56,28 @@ export function Solutions() {
                       : "border-hair bg-surface text-paper hover:border-hairStrong"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  {/* Panel art. It sits under the content and lifts in as the
+                      panel opens; the scrim keeps the list legible over it. */}
+                  <motion.div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%]"
+                    initial={false}
+                    animate={{ opacity: active ? 0.24 : 0.12 }}
+                    transition={{ duration: 0.7, ease: EASE }}
+                  >
+                    <ParallaxImage
+                      src={s.art}
+                      alt=""
+                      className="pointer-events-auto h-full w-full"
+                      scale={1.12}
+                      shift={7}
+                      stiffness={80}
+                      damping={22}
+                    />
+                    <span className="absolute inset-0 bg-gradient-to-t from-transparent via-black/35 to-black/90" />
+                  </motion.div>
+
+                  <div className="relative flex items-start justify-between gap-4">
                     <span
                       className={`font-sans text-2xs font-semibold uppercase tracking-wider transition-colors duration-500 ${
                         active ? "text-paper" : "text-dim"
@@ -84,7 +103,7 @@ export function Solutions() {
                     </motion.span>
                   </div>
 
-                  <div className="mt-16 lg:mt-0">
+                  <div className="relative mt-16 lg:mt-0">
                     {/* Collapsed panels are too narrow for the title, so it
                         stands vertically until the panel opens. */}
                     <h3

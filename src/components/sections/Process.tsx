@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { Reveal, MaskLine } from "../ui/Reveal";
 import { process } from "@/data/site";
+import { MarqueeLabel } from "../ui/MarqueeLabel";
 
 /**
  * Four cards that pin in sequence and stack.
@@ -23,11 +24,7 @@ export function Process() {
       <div className="shell">
         <div className="mb-14 md:mb-20">
           <Reveal className="mb-6">
-            <div className="eyebrow">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              Process
-              <span className="text-accent">—</span>
-            </div>
+            <MarqueeLabel text="Process" />
           </Reveal>
           <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <h2 className="text-[clamp(2.75rem,7vw,7.5rem)] font-medium leading-[0.9] tracking-tighter">

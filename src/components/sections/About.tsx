@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { Reveal, MaskLine } from "../ui/Reveal";
 import { CircleTextButton } from "../ui/MagneticButton";
 import { about } from "@/data/site";
+import { MarqueeLabel } from "../ui/MarqueeLabel";
 
 /** Word-level reveal driven by scroll position rather than a single trigger. */
 function ScrollLitParagraph({ text }: { text: string }) {
@@ -50,11 +51,7 @@ export function About() {
       <div className="shell">
         {/* Eyebrow */}
         <Reveal className="mb-12 md:mb-20">
-          <div className="eyebrow">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            {about.eyebrow}
-            <span className="text-accent">—</span>
-          </div>
+          <MarqueeLabel text={about.eyebrow} />
         </Reveal>
 
         <div className="grid gap-14 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-24">

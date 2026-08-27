@@ -44,6 +44,8 @@ export type Project = {
   tags: string;
   year: string;
   art: string;
+  /** Wide cover used by the feature rows. */
+  cover: string;
   blurb: string;
 };
 
@@ -51,6 +53,7 @@ export const projects: Project[] = [
   {
     index: "/ 01",
     title: "Halcyon",
+    cover: "/art/cover-01.svg",
     tags: "UX Design, UI Design, Branding",
     year: "2025",
     art: "/art/work-01.svg",
@@ -59,6 +62,7 @@ export const projects: Project[] = [
   {
     index: "/ 02",
     title: "Vantable",
+    cover: "/art/cover-02.svg",
     tags: "Branding, UI/UX Design, Illustration",
     year: "2024",
     art: "/art/work-02.svg",
@@ -67,6 +71,7 @@ export const projects: Project[] = [
   {
     index: "/ 03",
     title: "Ottermade",
+    cover: "/art/cover-03.svg",
     tags: "Branding, UI/UX Design, Web Development",
     year: "2024",
     art: "/art/work-03.svg",
@@ -75,6 +80,7 @@ export const projects: Project[] = [
   {
     index: "/ 04",
     title: "Persimmon",
+    cover: "/art/cover-04.svg",
     tags: "Product Design, Branding",
     year: "2023",
     art: "/art/work-04.svg",
@@ -86,21 +92,25 @@ export const solutions = [
   {
     n: "01",
     title: "Strategy",
+    art: "/art/panel-strategy.svg",
     items: ["Discovery", "Research", "Analysis", "Consultation", "Optimization"],
   },
   {
     n: "02",
     title: "Design",
+    art: "/art/panel-design.svg",
     items: ["Branding", "UI/UX", "Visual Identity", "Graphics", "Illustration"],
   },
   {
     n: "03",
     title: "Development",
+    art: "/art/panel-development.svg",
     items: ["Full Stack", "Framer", "API Integration", "Testing", "Deployment"],
   },
   {
     n: "04",
     title: "Production",
+    art: "/art/panel-production.svg",
     items: ["3D Modeling", "VR Experiences", "Visualization", "Motion Graphics", "Animations"],
   },
 ];
@@ -220,4 +230,20 @@ export const socials = [
   { label: "Twitter", href: "#" },
   { label: "LinkedIn", href: "#" },
   { label: "Dribbble", href: "#" },
+];
+
+/**
+ * Tiles for the gallery that closes the case-studies section. Heights vary so
+ * the three columns stagger rather than lining up in bands.
+ */
+export const gallery = [
+  "/art/tile-01.svg",
+  "/art/tile-02.svg",
+  "/art/tile-03.svg",
+  "/art/tile-04.svg",
+  "/art/tile-05.svg",
+  "/art/tile-06.svg",
+  "/art/tile-07.svg",
+  "/art/tile-08.svg",
+  "/art/tile-09.svg",
 ];

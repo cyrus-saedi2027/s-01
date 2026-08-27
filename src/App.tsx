@@ -9,6 +9,7 @@ import { MenuOverlay } from "./components/MenuOverlay";
 import { Hero } from "./components/sections/Hero";
 import { About } from "./components/sections/About";
 import { Works } from "./components/sections/Works";
+import { CaseStudies } from "./components/sections/CaseStudies";
 import { Solutions } from "./components/sections/Solutions";
 import { Process } from "./components/sections/Process";
 import { Testimonials } from "./components/sections/Testimonials";
@@ -69,6 +70,7 @@ export default function App() {
         <Hero ready={ready} />
         <About />
         <Works />
+        <CaseStudies />
         <Solutions />
         <Process />
         <Testimonials />

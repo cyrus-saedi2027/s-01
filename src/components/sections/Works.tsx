@@ -4,6 +4,7 @@ import { Reveal, MaskLine } from "../ui/Reveal";
 import { MagneticButton } from "../ui/MagneticButton";
 import { projects, type Project } from "@/data/site";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { MarqueeLabel } from "../ui/MarqueeLabel";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -31,11 +32,7 @@ export function Works() {
         <div className="mb-14 flex flex-col gap-8 md:mb-20 md:flex-row md:items-end md:justify-between">
           <div>
             <Reveal className="mb-6">
-              <div className="eyebrow">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                Creations
-                <span className="text-accent">—</span>
-              </div>
+              <MarqueeLabel text="Creations" />
             </Reveal>
             <h2 className="text-[clamp(2.75rem,7vw,7.5rem)] font-medium leading-[0.9] tracking-tighter">
               <MaskLine>Selected</MaskLine>

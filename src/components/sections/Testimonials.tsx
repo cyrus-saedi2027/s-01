@@ -1,6 +1,7 @@
 import { Reveal, MaskLine } from "../ui/Reveal";
 import { Marquee } from "../ui/Marquee";
 import { testimonials } from "@/data/site";
+import { MarqueeLabel } from "../ui/MarqueeLabel";
 
 /** Two counter-scrolling rows of quote cards; hovering pauses the row. */
 export function Testimonials() {
@@ -12,11 +13,7 @@ export function Testimonials() {
     <section id="testimonials" className="relative overflow-hidden py-24 md:py-36">
       <div className="shell mb-14 md:mb-20">
         <Reveal className="mb-6">
-          <div className="eyebrow">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            Testimonials
-            <span className="text-accent">—</span>
-          </div>
+          <MarqueeLabel text="Testimonials" />
         </Reveal>
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <h2 className="text-[clamp(2.75rem,7vw,7.5rem)] font-medium leading-[0.9] tracking-tighter">
