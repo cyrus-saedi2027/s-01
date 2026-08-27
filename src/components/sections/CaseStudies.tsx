@@ -83,12 +83,15 @@ function FeatureRow({
   // row leans away from its own side.
   const dir = flipped ? -1 : 1;
 
-  // CSS rotation runs clockwise, so a negative angle lifts the right edge.
-  // Mirrored for a cover on the left. The pivot is the card's own centre, so
-  // the raised edge swings down while the opposite edge swings up.
-  const rotate = useTransform(p, [0, 1], [-12 * dir, 0]);
-  const x = useTransform(p, [0, 1], [`${18 * dir}%`, "0%"]);
-  const scale = useTransform(p, [0, 1], [0.88, 1]);
+  // CSS rotation runs clockwise, so a positive angle lifts the LEFT edge.
+  // A cover on the right therefore starts with its left edge raised, and one
+  // on the left starts with its right edge raised.
+  //
+  // The pivot is the card's own centre and nothing translates it, so the card
+  // turns in place: the raised edge swings down while the opposite edge swings
+  // up, and the card never travels across the screen.
+  const rotate = useTransform(p, [0, 1], [12 * dir, 0]);
+  const scale = useTransform(p, [0, 1], [0.94, 1]);
 
   const textX = useTransform(p, [0, 1], [26 * -dir, 0]);
   const textOpacity = useTransform(p, [0.15, 0.75], [0, 1]);
@@ -104,7 +107,7 @@ function FeatureRow({
     >
       {/* Cover */}
       <motion.div
-        style={{ rotate, x, scale, transformOrigin: "center center" }}
+        style={{ rotate, scale, transformOrigin: "center center" }}
         className="relative overflow-hidden rounded-xl will-change-transform"
       >
         <div className="aspect-[3/2] w-full overflow-hidden">
