@@ -19,11 +19,11 @@ import { Footer } from "./components/sections/Footer";
 import { useSmoothScroll } from "./hooks/useSmoothScroll";
 
 /**
- * Pointer style. "ring" trails a hollow outlined circle; "comet" trails a solid
- * disc that stretches along the direction of travel. Both live in
- * components/ui/Cursor.tsx.
+ * Pointer style. "ring" is a precise dot with a hollow outlined circle
+ * trailing it; "comet" trails a solid shape that tapers along the direction of
+ * travel. Both live in components/ui/Cursor.tsx.
  */
-const CURSOR_VARIANT: CursorVariant = "comet";
+const CURSOR_VARIANT: CursorVariant = "ring";
 
 export default function App() {
   const [ready, setReady] = useState(false);
