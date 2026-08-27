@@ -32,8 +32,10 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Inertial wheel scrolling, enabled once the curtain has lifted.
-  useSmoothScroll(ready && !menuOpen);
+  // Inertial wheel scrolling, enabled once the curtain has lifted. It stays on
+  // while the menu is up: the panel is fixed, so the page reads normally as it
+  // scrolls past behind it.
+  useSmoothScroll(ready);
 
   // Anchor links have to bypass the smooth-scroll target, so handle them here.
   useEffect(() => {

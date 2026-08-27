@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { navLinks } from "@/data/site";
-import { GLASS_BLUR, GLASS_GRAIN, GLASS_SATURATE } from "@/lib/glass";
+import { GLASS_BLUR, GLASS_GRAIN, GLASS_GRAIN_OPACITY, GLASS_SATURATE } from "@/lib/glass";
 
 const EASE = [0.76, 0, 0.24, 1] as const;
 
@@ -29,10 +29,6 @@ export function MenuOverlay({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-
-  useEffect(() => {
-    document.body.dataset.locked = open ? "true" : "false";
-  }, [open]);
 
   return (
     <AnimatePresence>
@@ -66,8 +62,12 @@ export function MenuOverlay({
                 painted once and never animated, so it costs nothing per frame. */}
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-[0.042] mix-blend-screen"
-              style={{ backgroundImage: GLASS_GRAIN, backgroundRepeat: "repeat" }}
+              className="pointer-events-none absolute inset-0 mix-blend-screen"
+              style={{
+                backgroundImage: GLASS_GRAIN,
+                backgroundRepeat: "repeat",
+                opacity: GLASS_GRAIN_OPACITY,
+              }}
             />
 
             <div className="relative flex h-full items-center justify-center px-[var(--shell-x)] pt-14">
