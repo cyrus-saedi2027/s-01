@@ -106,9 +106,10 @@ Tokens live in `tailwind.config.ts`.
   motion values instead.
 - **Menu performance** — the panel has a fixed height and animates
   `translateY`, so opening is a composited transform rather than a per-frame
-  layout pass, and its warm tint is a static radial gradient. An animated
-  element carrying a large `blur()` has to re-rasterise every frame, which is
-  what made an earlier version stutter.
+  layout pass. Its surface is even frosted glass with a fine grain laid over
+  it; the grain is a static repeating tile, painted once and never animated.
+  An animated element carrying a large `blur()` has to re-rasterise every
+  frame, which is what made an earlier version stutter.
 - **Scroll indicator** — right edge, vertically centred, hidden until you
   scroll past a threshold and fading out about a second after you stop.
 - **Smooth scroll** — drives `window.scrollTo` rather than transforming a

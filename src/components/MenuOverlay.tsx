@@ -50,17 +50,22 @@ export function MenuOverlay({
 
           <motion.nav
             id="site-menu"
-            className="fixed inset-x-0 top-0 z-[72] h-[min(56svh,560px)] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#08080a]/72 backdrop-blur-2xl"
+            className="fixed inset-x-0 top-0 z-[72] h-[min(56svh,560px)] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#0a0a0c]/70 backdrop-blur-2xl"
             style={{ willChange: "transform" }}
             initial={{ y: "-100%" }}
             animate={{ y: "0%" }}
             exit={{ y: "-100%" }}
             transition={{ duration: 0.68, ease: EASE }}
           >
-            {/* Warm tint — a plain gradient, no filters. */}
+            {/* Fine grain over the glass. The texture is a static tile — it is
+                painted once and never animated, so it costs nothing per frame. */}
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(78%_62%_at_50%_56%,rgba(253,50,28,0.30)_0%,rgba(255,138,0,0.11)_42%,transparent_74%)]"
+              className="pointer-events-none absolute inset-0 opacity-[0.30] mix-blend-screen"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                backgroundRepeat: "repeat",
+              }}
             />
 
             <div className="relative flex h-full items-center justify-center px-[var(--shell-x)] pt-14">
