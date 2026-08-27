@@ -131,7 +131,9 @@ Tokens live in `tailwind.config.ts`.
   the card, so one rotation carries its centre along a circle of that radius —
   the card curves into place and unwinds its tilt in a single motion, with no
   translation involved. Pull the pivot toward `50% 50%` to flatten the curve
-  into a turn on the spot; push it further down to widen the sweep. A cover on
+  into a turn on the spot; push it further down to widen the sweep. `SETTLE_AT`
+  is the fraction of the row's scroll range at which the card finishes
+  straightening — below 1 it lands square early and then simply holds. A cover on
   the right starts with its left edge raised, and one on the left starts with
   its right edge raised. The rows sit in an `overflow-x-clip` wrapper at
   viewport width so a swung corner cannot widen the page; `clip` rather than

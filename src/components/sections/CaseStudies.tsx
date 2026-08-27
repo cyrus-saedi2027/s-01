@@ -16,6 +16,13 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 const ARC_PIVOT = "50% 180%";
 
 /**
+ * Fraction of a row's scroll range at which its cover finishes straightening.
+ * Below 1 the card settles early and then simply holds; at 1 it is still
+ * unwinding as the row reaches the middle of the viewport.
+ */
+const SETTLE_AT = 0.87;
+
+/**
  * The long-form counterpart to the works index: each project gets a full row,
  * then a gallery closes the section out.
  */
@@ -46,7 +53,9 @@ export function CaseStudies() {
           before sliding in. `clip` rather than `hidden`: `hidden` creates a
           scroll container and would break the sticky gallery below. */}
       <div className="overflow-x-clip">
-        <div className="shell flex flex-col gap-28 md:gap-44">
+        {/* Narrower gutters than the site's shell, so the covers sit closer to
+            the page edge — roughly half the usual margin. */}
+        <div className="mx-auto flex w-full max-w-shell flex-col gap-28 px-[clamp(0.75rem,1.9vw,2.25rem)] md:gap-44">
           {projects.map((p, i) => (
             <FeatureRow key={p.title} project={p} index={i} flipped={i % 2 === 1} />
           ))}
@@ -100,8 +109,10 @@ function FeatureRow({
   // With the pivot below the card, that same rotation also swings the card out
   // along the arc — each cover enters from its own side of the layout and
   // curves back in.
-  const rotate = useTransform(p, [0, 1], [12 * dir, 0]);
-  const scale = useTransform(p, [0, 1], [0.94, 1]);
+  // Both land at SETTLE_AT rather than at the end of the range, so the card is
+  // square a little before the row reaches the middle of the viewport.
+  const rotate = useTransform(p, [0, SETTLE_AT], [12 * dir, 0]);
+  const scale = useTransform(p, [0, SETTLE_AT], [0.94, 1]);
 
   const textX = useTransform(p, [0, 1], [26 * -dir, 0]);
   const textOpacity = useTransform(p, [0.15, 0.75], [0, 1]);
