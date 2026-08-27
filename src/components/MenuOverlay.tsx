@@ -50,7 +50,7 @@ export function MenuOverlay({
 
           <motion.nav
             id="site-menu"
-            className="fixed inset-x-0 top-0 z-[72] h-[min(56svh,560px)] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#0a0a0c]/70 backdrop-blur-2xl"
+            className="fixed inset-x-0 top-0 z-[72] h-[min(56svh,560px)] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#0a0a0c]/55 backdrop-blur-[42px] backdrop-saturate-[1.4]"
             style={{ willChange: "transform" }}
             initial={{ y: "-100%" }}
             animate={{ y: "0%" }}
@@ -61,7 +61,7 @@ export function MenuOverlay({
                 painted once and never animated, so it costs nothing per frame. */}
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-[0.30] mix-blend-screen"
+              className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-screen"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")`,
                 backgroundRepeat: "repeat",

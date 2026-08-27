@@ -51,15 +51,17 @@ Two pointers ship in `src/components/ui/Cursor.tsx`. Switch with the
 | Variant | Behaviour |
 |---|---|
 | `ring` | Precise dot with a hollow outlined circle trailing behind it, swelling into a labelled disc over flagged elements. |
-| `comet` | Precise dot with a solid shape trailing behind it. Standing still it is a circle; moving, it draws into a tapered capsule pointing along the direction of travel. |
+| `comet` | Precise dot sitting at the centre of a filled circle, which draws out into a tail behind it as the pointer moves. |
 
-The comet's outline is the convex hull of two circles — a head of radius `R`, a
-tail of radius `r`, centres `d` apart — which is a rounded head easing into a
-narrower tail. With `d = 0` and `R = r` it degenerates to a plain circle, so a
-resting pointer needs no special case. Speed feeds `R`, `r` and `d` through a
-smoothstep, so small movements barely deform it and fast ones taper off instead
-of running away. The follower's spring stiffness is the "magnet strength":
-lower means more trailing lag and a gentler settle.
+The comet's outline is the convex hull of two circles — a head of radius `R`
+centred on the origin, a tail of radius `r` trailing at `-d`. Anchoring the
+head at the origin is the point: the origin is what gets pinned to the pointer,
+so the dot always sits dead centre in the round head.
+
+Only the tail lags. A single point is eased toward the pointer each frame, and
+the gap between the two drives both the tail's length and how far it narrows.
+Stop moving and the lagged point catches up, the gap closes, and the shape
+relaxes back into a circle on its own — there is no separate settle animation.
 
 Elements opt into pointer states with `data-cursor="hide" | "view" | "drag"`.
 Both variants are disabled on coarse pointers.
@@ -72,8 +74,11 @@ and uses `object-fit: cover`. A photographic pair (`hero.webp` / `hero.jpg`) is
 bundled there too if you want to switch to it. To redraw the bundled artwork,
 run `node scripts/generate-hero-art.mjs`.
 
-The card tilts toward the pointer: offset drives motion values through springs,
-and the picture counter-shifts inside its frame for a little parallax.
+The picture is zoomed a little past its frame (`HERO_SCALE`) and the pointer
+nudges it around inside that overhang. Keep the shift well under the overhang
+(`size * (SCALE - 1) / 2`) or the image pulls away from its own edges. Note the
+scale is applied through Framer alongside `x`/`y`, not as a Tailwind class —
+see the transform note below.
 
 ## Design system
 
@@ -116,12 +121,12 @@ Tokens live in `tailwind.config.ts`.
   frame, which is what made an earlier version stutter.
 - **Scroll indicator** — right edge, vertically centred, hidden until you
   scroll past a threshold and fading out about a second after you stop.
-- **The comet cursor never re-renders React.** One rAF loop measures the
-  pointer's own motion values and writes the path and rotation straight to the
-  DOM. Driving them from state instead re-rendered ~120 times a second and
-  stuttered, and springs fed from that state restarted every frame and
-  jittered. Its heading is accumulated unwrapped, because `atan2` flips
-  between +pi and -pi and following that jump spins the shape a full turn.
+- **The comet cursor never re-renders React.** One rAF loop reads the pointer's
+  motion values and writes the path and rotation straight to the DOM. Driving
+  them from state instead re-rendered ~120 times a second and stuttered, and
+  springs fed from that state restarted every frame and jittered. Its heading
+  is accumulated unwrapped, because `atan2` flips between +pi and -pi and
+  following that jump spins the shape a full turn.
 - **Smooth scroll** — drives `window.scrollTo` rather than transforming a
   wrapper, which keeps `position: sticky`, IntersectionObserver and anchor
   links working. Disabled on touch and under `prefers-reduced-motion`.

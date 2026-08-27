@@ -9,25 +9,24 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
  *
  *   "ring"    a precise dot with a hollow outlined circle trailing behind it,
  *             swelling into a labelled disc over flagged elements.
- *   "comet"   a precise dot with a solid shape trailing behind it. At rest it
- *             is a circle; in motion it draws into a tapered capsule pointing
- *             along the direction of travel.
+ *   "comet"   a precise dot sitting at the centre of a filled circle, which
+ *             draws out into a tail behind it as the pointer moves.
  *
  * Elements opt into states through `data-cursor`: "hide" | "view" | "drag".
  */
 export type CursorVariant = "ring" | "comet";
 type State = "default" | "hide" | "view" | "drag";
 
-/** How often to re-check what is under the pointer. */
+/** How often to re-check what sits under the pointer. */
 const HIT_TEST_MS = 70;
 
 export function Cursor({ variant = "ring" }: { variant?: CursorVariant }) {
   const fine = useMediaQuery("(pointer: fine)");
   const [state, setState] = useState<State>("default");
   const [visible, setVisible] = useState(false);
+  const seen = useRef(false);
 
-  // Raw pointer position. The dot binds to these directly; the followers
-  // spring off them.
+  // Raw pointer position. Everything reads these; nothing re-renders on move.
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
 
@@ -38,13 +37,15 @@ export function Cursor({ variant = "ring" }: { variant?: CursorVariant }) {
     let lastHitTest = 0;
 
     const onMove = (e: MouseEvent) => {
-      // Motion values are written straight through — no React render per move.
       x.set(e.clientX);
       y.set(e.clientY);
-      if (!visible) setVisible(true);
+      if (!seen.current) {
+        seen.current = true;
+        setVisible(true);
+      }
 
-      // Hit testing is the expensive part, so it runs on its own slow cadence
-      // rather than once per mouse event.
+      // Hit testing is the costly part, so it runs on its own slow cadence
+      // instead of once per mouse event.
       const now = performance.now();
       if (now - lastHitTest < HIT_TEST_MS) return;
       lastHitTest = now;
@@ -56,21 +57,24 @@ export function Cursor({ variant = "ring" }: { variant?: CursorVariant }) {
         : el?.closest("a,button,input,textarea,select,[role='button']")
           ? "hide"
           : "default";
-      // React bails out when the value is unchanged, so this only renders on
-      // an actual state transition.
+      // React bails out on an unchanged value, so this only renders on a real
+      // state transition.
       setState(next);
     };
 
     const onLeave = () => setVisible(false);
+    const onEnter = () => setVisible(true);
 
     window.addEventListener("mousemove", onMove, { passive: true });
     document.addEventListener("mouseleave", onLeave);
+    document.addEventListener("mouseenter", onEnter);
     return () => {
       document.body.classList.remove("has-custom-cursor");
       window.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseleave", onLeave);
+      document.removeEventListener("mouseenter", onEnter);
     };
-  }, [fine, x, y, visible]);
+  }, [fine, x, y]);
 
   if (!fine) return null;
 
@@ -83,14 +87,15 @@ export function Cursor({ variant = "ring" }: { variant?: CursorVariant }) {
       {variant === "comet" ? (
         <CometFollower x={x} y={y} state={state} />
       ) : (
-        <RingFollower x={x} y={y} state={state} />
+        <>
+          <RingFollower x={x} y={y} state={state} />
+          <motion.div
+            className="absolute left-0 top-0 h-1.5 w-1.5 rounded-full bg-paper"
+            style={{ x, y, translateX: "-50%", translateY: "-50%" }}
+            animate={{ opacity: state === "view" || state === "drag" ? 0 : 1 }}
+          />
+        </>
       )}
-
-      <motion.div
-        className="absolute left-0 top-0 h-1.5 w-1.5 rounded-full bg-paper"
-        style={{ x, y, translateX: "-50%", translateY: "-50%" }}
-        animate={{ opacity: state === "view" || state === "drag" ? 0 : 1 }}
-      />
     </div>
   );
 }
@@ -124,113 +129,105 @@ function RingFollower({ x, y, state }: { x: MV; y: MV; state: State }) {
 }
 
 /**
- * Outline wrapping a head circle of radius R and a tail circle of radius r
- * whose centres sit `d` apart: the convex hull of the two, being the external
- * tangent lines plus an arc at each end. That reads as a rounded head easing
- * into a narrower tail. With d = 0 and R = r it degenerates to a plain circle,
- * so a resting pointer needs no special case.
+ * Outline wrapping a head circle of radius R centred on the ORIGIN and a tail
+ * circle of radius r trailing at -d: the convex hull of the two, being the
+ * external tangent lines plus an arc at each end.
+ *
+ * Anchoring the head at the origin is the whole point — the origin is what
+ * gets pinned to the pointer, so the dot always sits at the centre of the
+ * round head. With d = 0 it degenerates to a plain circle, so a resting
+ * pointer needs no special case.
  */
 function taperedCapsule(R: number, r: number, d: number) {
   if (d < 0.001 || d <= Math.abs(R - r)) {
-    const big = Math.max(R, r);
-    return `M ${-big} 0 a ${big} ${big} 0 1 0 ${big * 2} 0 a ${big} ${big} 0 1 0 ${-big * 2} 0`;
+    const b = Math.max(R, r);
+    return `M ${-b} 0 a ${b} ${b} 0 1 0 ${b * 2} 0 a ${b} ${b} 0 1 0 ${-b * 2} 0`;
   }
-
-  const alpha = Math.asin((R - r) / d);
-  const phi = Math.PI / 2 + alpha;
-  // The head leads at +d along the local x axis; the tail trails at the origin.
-  // The whole shape is then rotated so +x points along the direction of travel.
-  const hx = d;
+  const phi = Math.PI / 2 + Math.asin((R - r) / d);
+  const c = Math.cos(phi);
+  const s = Math.sin(phi);
   const p = (n: number) => n.toFixed(2);
 
-  const cosP = Math.cos(phi);
-  const sinP = Math.sin(phi);
-
   return [
-    `M ${p(hx - R * cosP)} ${p(R * sinP)}`,
-    `A ${p(R)} ${p(R)} 0 1 0 ${p(hx - R * cosP)} ${p(-R * sinP)}`,
-    `L ${p(-r * cosP)} ${p(-r * sinP)}`,
-    `A ${p(r)} ${p(r)} 0 0 0 ${p(-r * cosP)} ${p(r * sinP)}`,
+    `M ${p(-R * c)} ${p(R * s)}`,
+    `A ${p(R)} ${p(R)} 0 1 0 ${p(-R * c)} ${p(-R * s)}`,
+    `L ${p(-d - r * c)} ${p(-r * s)}`,
+    `A ${p(r)} ${p(r)} 0 0 0 ${p(-d - r * c)} ${p(r * s)}`,
     "Z",
   ].join(" ");
 }
 
 const BASE_FOR: Record<State, number> = {
-  view: 52,
-  drag: 38,
-  hide: 26,
-  default: 15,
+  view: 50,
+  drag: 36,
+  hide: 24,
+  default: 14,
 };
 
 /**
- * Solid shape trailing the dot, tapering along the direction of travel.
+ * Filled shape pinned to the pointer, trailing a tail when you move.
  *
- * The whole animation runs in one rAF loop that writes to the DOM directly.
- * An earlier version called setState for the path and the angle on every
- * frame, which re-rendered React ~120 times a second and made the pointer
- * stutter; it also fed a spring from that state, so the spring restarted each
- * frame and jittered. Velocity is measured here from the pointer's own motion
- * values rather than in a second loop, and the heading is accumulated
- * unwrapped — atan2 flips between +pi and -pi, and following that jump
- * literally spun the shape a full turn.
+ * The head is locked to the live pointer rather than springing toward it, so
+ * the dot is always dead centre in the circle. Only the tail lags: a single
+ * point eased toward the pointer each frame, with the gap between the two
+ * driving both the tail's length and how far it narrows. Stop moving and the
+ * lagged point catches up, the gap closes, and the shape relaxes back into a
+ * circle on its own — no separate "settle" animation needed.
+ *
+ * The loop writes to the DOM directly. Driving the path or the rotation from
+ * React state re-rendered on every frame and stuttered badly; springs fed from
+ * that state restarted each frame and jittered on top of it.
  */
 function CometFollower({ x, y, state }: { x: MV; y: MV; state: State }) {
-  // Loose and well damped: this is the "magnet strength". Lower stiffness
-  // means more trailing lag and a gentler settle.
-  const fx = useSpring(x, { stiffness: 190, damping: 24, mass: 0.6 });
-  const fy = useSpring(y, { stiffness: 190, damping: 24, mass: 0.6 });
-
   const pathRef = useRef<SVGPathElement>(null);
   const rotorRef = useRef<HTMLDivElement>(null);
   const base = BASE_FOR[state];
 
+  // How far the tail may fall behind, and how thin it gets at full stretch.
+  const maxLag = base * 2.4;
+
   useEffect(() => {
     let frame = 0;
-    let prevX = x.get();
-    let prevY = y.get();
-    let speed = 0;      // smoothed
-    let deform = 0;     // smoothed 0..1
-    let heading = 0;    // unwrapped radians
-    let shown = 0;      // smoothed heading
+    // The lagged point starts on the pointer so the first frame is a circle.
+    let lagX = x.get();
+    let lagY = y.get();
+    let shownAngle = 0;
+    let haveAngle = false;
 
     const tick = () => {
-      const cx = x.get();
-      const cy = y.get();
-      const dx = cx - prevX;
-      const dy = cy - prevY;
-      prevX = cx;
-      prevY = cy;
+      const px = x.get();
+      const py = y.get();
 
-      // Low-pass the raw per-frame delta; raw values are far too noisy to
-      // drive a shape with.
-      const raw = Math.hypot(dx, dy);
-      speed += (raw - speed) * 0.2;
+      // Ease the tail toward the pointer. This single lerp is the whole
+      // physics: the residual gap is the stretch.
+      lagX += (px - lagX) * 0.16;
+      lagY += (py - lagY) * 0.16;
 
-      // Smoothstep keeps small movements from deforming the shape at all and
-      // stops fast ones from running away.
-      const t = Math.min(speed / 22, 1);
-      const target = t * t * (3 - 2 * t);
-      deform += (target - deform) * 0.14;
+      const dx = px - lagX;
+      const dy = py - lagY;
+      const gap = Math.min(Math.hypot(dx, dy), maxLag);
+      const t = gap / maxLag;
 
-      // Only trust the direction when actually moving; below that the vector
-      // is noise and the shape would spin on the spot.
-      if (raw > 1.2) {
+      // Below a pixel or so the direction is noise, so hold the last heading.
+      if (gap > 1) {
         const want = Math.atan2(dy, dx);
-        let delta = want - heading;
-        // Unwrap to the equivalent angle nearest the current heading.
-        while (delta > Math.PI) delta -= Math.PI * 2;
-        while (delta < -Math.PI) delta += Math.PI * 2;
-        heading += delta;
+        if (!haveAngle) {
+          shownAngle = want;
+          haveAngle = true;
+        } else {
+          // Unwrap: atan2 flips between +pi and -pi, and following that jump
+          // literally spins the shape a full turn.
+          let delta = want - shownAngle;
+          while (delta > Math.PI) delta -= Math.PI * 2;
+          while (delta < -Math.PI) delta += Math.PI * 2;
+          shownAngle += delta;
+        }
       }
-      shown += (heading - shown) * 0.18;
 
-      const head = base * (1 + deform * 0.12);
-      const tail = base * (1 - deform * 0.5);
-      const gap = base * deform * 1.05;
-
-      pathRef.current?.setAttribute("d", taperedCapsule(head, tail, gap));
+      const tail = base * (1 - 0.55 * t);
+      pathRef.current?.setAttribute("d", taperedCapsule(base, tail, gap));
       if (rotorRef.current) {
-        rotorRef.current.style.transform = `rotate(${shown}rad)`;
+        rotorRef.current.style.transform = `rotate(${shownAngle}rad)`;
       }
 
       frame = requestAnimationFrame(tick);
@@ -238,31 +235,47 @@ function CometFollower({ x, y, state }: { x: MV; y: MV; state: State }) {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [x, y, base]);
+  }, [x, y, base, maxLag]);
 
-  const extent = base * 3;
+  const extent = base + maxLag + 4;
 
   return (
     <motion.div
       className="absolute left-0 top-0"
-      style={{ x: fx, y: fy, translateX: "-50%", translateY: "-50%" }}
+      style={{ x, y }}
     >
-      <div ref={rotorRef} style={{ willChange: "transform" }}>
+      {/* Centred on the anchor, so rotate() spins about the pointer itself. */}
+      <div
+        ref={rotorRef}
+        className="absolute"
+        style={{
+          left: -extent,
+          top: -extent,
+          width: extent * 2,
+          height: extent * 2,
+          willChange: "transform",
+        }}
+      >
         <svg
           width={extent * 2}
           height={extent * 2}
           viewBox={`${-extent} ${-extent} ${extent * 2} ${extent * 2}`}
           className="block"
-          style={{ margin: -extent }}
         >
           <path
             ref={pathRef}
             d={taperedCapsule(base, base, 0)}
             fill={state === "view" ? "#fd321c" : "#ffffff"}
-            opacity={state === "hide" ? 0.4 : state === "default" ? 0.8 : 1}
+            opacity={state === "hide" ? 0.45 : state === "default" ? 0.85 : 1}
           />
         </svg>
       </div>
+
+      {/* The precise dot sits at the anchor — the head's exact centre. */}
+      <motion.div
+        className="absolute left-0 top-0 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink"
+        animate={{ opacity: state === "view" || state === "drag" ? 0 : 0.85 }}
+      />
 
       {(state === "view" || state === "drag") && (
         <span className="absolute left-0 top-0 grid -translate-x-1/2 -translate-y-1/2 place-items-center">

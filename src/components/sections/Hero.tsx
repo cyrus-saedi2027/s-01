@@ -136,6 +136,9 @@ export function Hero({ ready }: { ready: boolean }) {
  * feel like it has depth without becoming a gimmick. Everything is written to
  * motion values, so moving the mouse never re-renders React.
  */
+/** How far the picture is zoomed past its frame. */
+const HERO_SCALE = 1.08;
+
 function TiltCard({ ready }: { ready: boolean }) {
   const box = useRef<HTMLDivElement>(null);
 
@@ -143,15 +146,21 @@ function TiltCard({ ready }: { ready: boolean }) {
   const px = useMotionValue(0);
   const py = useMotionValue(0);
 
-  const spring = { stiffness: 150, damping: 18, mass: 0.6 };
+  const spring = { stiffness: 120, damping: 20, mass: 0.7 };
   const sx = useSpring(px, spring);
   const sy = useSpring(py, spring);
 
-  const rotateY = useTransform(sx, [-0.5, 0.5], [-9, 9]);
-  const rotateX = useTransform(sy, [-0.5, 0.5], [7, -7]);
-  // The picture drifts against the tilt for a touch of parallax.
-  const shiftX = useTransform(sx, [-0.5, 0.5], [16, -16]);
-  const shiftY = useTransform(sy, [-0.5, 0.5], [12, -12]);
+  /**
+   * The picture is scaled up very slightly, and the pointer nudges it around
+   * inside that overhang. Keep the shift well under the overhang or the image
+   * pulls away from its own frame:
+   *   overhang per side = size * (SCALE - 1) / 2
+   * At SCALE 1.08 on a 400px-wide card that is 16px across and ~21px down, so
+   * these stay comfortably inside. There is deliberately no 3D tilt — rotating
+   * the card is what pushed its corners outside the frame before.
+   */
+  const shiftX = useTransform(sx, [-0.5, 0.5], [9, -9]);
+  const shiftY = useTransform(sy, [-0.5, 0.5], [11, -11]);
 
   const onMove = (e: React.MouseEvent) => {
     const r = box.current?.getBoundingClientRect();
@@ -173,26 +182,23 @@ function TiltCard({ ready }: { ready: boolean }) {
       initial={{ opacity: 0, y: 60, clipPath: "inset(100% 0 0 0)" }}
       animate={ready ? { opacity: 1, y: 0, clipPath: "inset(0% 0 0 0)" } : {}}
       transition={{ duration: 1.15, delay: 0.25, ease: EASE }}
-      style={{ perspective: 900 }}
-      className="group relative w-[min(80vw,340px)] md:w-[min(42vw,400px)]"
+      className="group relative w-[min(80vw,340px)] overflow-hidden rounded-xl md:w-[min(42vw,400px)]"
     >
-      <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="relative overflow-hidden rounded-xl"
-      >
-        <div className="aspect-[3/4] w-full overflow-hidden">
-          <motion.img
-            src={heroImage.src}
-            alt={heroImage.alt}
-            style={{ x: shiftX, y: shiftY }}
-            className="h-full w-full scale-[1.12] object-cover"
-          />
-        </div>
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10"
+      <div className="aspect-[3/4] w-full overflow-hidden">
+        {/* The scale has to go through Framer too: animating x/y writes the
+            whole transform property, which would drop a Tailwind scale class
+            and leave the image shifting with no overhang to shift within. */}
+        <motion.img
+          src={heroImage.src}
+          alt={heroImage.alt}
+          style={{ x: shiftX, y: shiftY, scale: HERO_SCALE }}
+          className="h-full w-full object-cover"
         />
-      </motion.div>
+      </div>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10"
+      />
     </motion.figure>
   );
 }
