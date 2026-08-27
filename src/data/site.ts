@@ -193,6 +193,26 @@ export const testimonials = [
   },
 ];
 
+/**
+ * The showcase wall — six plates that ride in over the testimonials on their
+ * own layer. Titles are short on purpose: they sit under the frame as a
+ * caption, not as a heading.
+ */
+export const showcase = {
+  eyebrow: "Archive",
+  lines: ["Recent", "Frames"],
+  blurb:
+    "Loose ends, test renders and the frames that never made it into a case study.",
+  items: [
+    { n: "01", title: "Kinetic Grid", meta: "Motion study", art: "/art/showcase-01.svg" },
+    { n: "02", title: "Vermilion", meta: "Colour test", art: "/art/showcase-02.svg" },
+    { n: "03", title: "Long Form", meta: "Editorial layout", art: "/art/showcase-03.svg" },
+    { n: "04", title: "Contour", meta: "Type specimen", art: "/art/showcase-04.svg" },
+    { n: "05", title: "Night Shift", meta: "Interface pass", art: "/art/showcase-05.svg" },
+    { n: "06", title: "Off Register", meta: "Print trial", art: "/art/showcase-06.svg" },
+  ],
+};
+
 export const awards = [
   {
     org: "Site of the Day",

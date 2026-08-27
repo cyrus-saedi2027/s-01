@@ -1,6 +1,7 @@
 /**
  * Generates the site's abstract artwork as SVG: panel art for the capabilities
- * section, cover art for the works rows, and tiles for the gallery.
+ * section, cover art for the works rows, tiles for the gallery, and the plates
+ * on the showcase wall.
  *
  * Everything is drawn procedurally from a seeded PRNG, so output is stable
  * across runs and there are no bitmap dependencies. All of it stays inside the
@@ -217,5 +218,10 @@ const tileShapes = [
 tileShapes.forEach(([w, h], i) => {
   write(`tile-${String(i + 1).padStart(2, "0")}.svg`, w, h, MOTIFS[[0, 3, 1, 0, 4, 2, 0, 5, 3][i]], 3000 + i * 313);
 });
+
+// Showcase wall — six plates in one aspect, so the grid reads as a set.
+for (let i = 1; i <= 6; i++) {
+  write(`showcase-0${i}.svg`, 900, 675, MOTIFS[[1, 4, 0, 5, 2, 3][i - 1]], 4000 + i * 173);
+}
 
 console.log(`wrote ${count} files to ${path.relative(ROOT, OUT)}`);

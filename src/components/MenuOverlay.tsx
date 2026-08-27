@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { navLinks } from "@/data/site";
+import { GLASS_BLUR, GLASS_GRAIN, GLASS_SATURATE } from "@/lib/glass";
 
 const EASE = [0.76, 0, 0.24, 1] as const;
 
@@ -10,9 +11,9 @@ const EASE = [0.76, 0, 0.24, 1] as const;
  *
  * Two things keep it smooth. The panel has a fixed height and animates
  * `translateY`, so opening is a composited transform rather than a per-frame
- * layout pass. And the warm tint is a static radial gradient — an animated
- * element with a large `blur()` has to re-rasterise every frame, which is what
- * made the earlier version stutter.
+ * layout pass. And the grain is a static tile — an animated element carrying a
+ * large `blur()` has to re-rasterise every frame, which is what made the
+ * earlier version stutter.
  */
 export function MenuOverlay({
   open,
@@ -50,8 +51,12 @@ export function MenuOverlay({
 
           <motion.nav
             id="site-menu"
-            className="fixed inset-x-0 top-0 z-[72] h-[min(56svh,560px)] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#0a0a0c]/55 backdrop-blur-[42px] backdrop-saturate-[1.4]"
-            style={{ willChange: "transform" }}
+            className="fixed inset-x-0 top-0 z-[72] h-[min(56svh,560px)] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#0a0a0c]/55"
+            style={{
+              willChange: "transform",
+              backdropFilter: `blur(${GLASS_BLUR}px) saturate(${GLASS_SATURATE})`,
+              WebkitBackdropFilter: `blur(${GLASS_BLUR}px) saturate(${GLASS_SATURATE})`,
+            }}
             initial={{ y: "-100%" }}
             animate={{ y: "0%" }}
             exit={{ y: "-100%" }}
@@ -61,11 +66,8 @@ export function MenuOverlay({
                 painted once and never animated, so it costs nothing per frame. */}
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-screen"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                backgroundRepeat: "repeat",
-              }}
+              className="pointer-events-none absolute inset-0 opacity-[0.042] mix-blend-screen"
+              style={{ backgroundImage: GLASS_GRAIN, backgroundRepeat: "repeat" }}
             />
 
             <div className="relative flex h-full items-center justify-center px-[var(--shell-x)] pt-14">
@@ -125,7 +127,7 @@ function SwapLabel({
             key={i}
             className="inline-block whitespace-pre will-change-transform"
             animate={{ y: active ? "-105%" : "0%" }}
-            transition={{ duration: 0.4, ease: EASE, delay: i * 0.018 }}
+            transition={{ duration: 0.61, ease: EASE, delay: i * 0.027 }}
           >
             {ch === " " ? " " : ch}
           </motion.span>
@@ -138,7 +140,7 @@ function SwapLabel({
             className="inline-block whitespace-pre will-change-transform"
             initial={{ y: "105%" }}
             animate={{ y: active ? "0%" : "105%" }}
-            transition={{ duration: 0.4, ease: EASE, delay: i * 0.018 }}
+            transition={{ duration: 0.61, ease: EASE, delay: i * 0.027 }}
           >
             {ch === " " ? " " : ch}
           </motion.span>

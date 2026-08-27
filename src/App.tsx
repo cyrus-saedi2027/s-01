@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Preloader } from "./components/ui/Preloader";
 import { Cursor, type CursorVariant } from "./components/ui/Cursor";
 import { ScrollProgress } from "./components/ui/ScrollProgress";
+import { TopGlass } from "./components/ui/TopGlass";
 import { Header } from "./components/Header";
 import { MenuOverlay } from "./components/MenuOverlay";
 
@@ -13,6 +14,7 @@ import { CaseStudies } from "./components/sections/CaseStudies";
 import { Solutions } from "./components/sections/Solutions";
 import { Process } from "./components/sections/Process";
 import { Testimonials } from "./components/sections/Testimonials";
+import { Showcase } from "./components/sections/Showcase";
 import { Awards } from "./components/sections/Awards";
 import { CTA } from "./components/sections/CTA";
 import { Footer } from "./components/sections/Footer";
@@ -59,6 +61,10 @@ export default function App() {
 
       <ScrollProgress />
 
+      {/* Hidden while the menu is open — the panel brings its own glass, and
+          stacking the two would deepen the blur under the header alone. */}
+      <TopGlass hidden={menuOpen} />
+
       <Header
         ready={ready}
         menuOpen={menuOpen}
@@ -73,7 +79,16 @@ export default function App() {
         <CaseStudies />
         <Solutions />
         <Process />
-        <Testimonials />
+        {/* The page stops being one column here. Testimonials pins to the top
+            of the viewport and the archive wall, next in flow but painted
+            above it, rides up over it as its own sheet. */}
+        <div className="relative">
+          <div className="sticky top-0 z-0">
+            <Testimonials />
+          </div>
+          <Showcase />
+        </div>
+
         <Awards />
         <CTA />
       </main>

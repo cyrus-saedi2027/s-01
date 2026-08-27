@@ -55,7 +55,7 @@ export function CaseStudies() {
       <div className="overflow-x-clip">
         {/* Narrower gutters than the site's shell, so the covers sit closer to
             the page edge — roughly half the usual margin. */}
-        <div className="mx-auto flex w-full max-w-shell flex-col gap-28 px-[clamp(0.75rem,1.9vw,2.25rem)] md:gap-44">
+        <div className="mx-auto flex w-full max-w-shell flex-col gap-[4.02rem] px-[clamp(0.75rem,1.9vw,2.25rem)] md:gap-[6.33rem]">
           {projects.map((p, i) => (
             <FeatureRow key={p.title} project={p} index={i} flipped={i % 2 === 1} />
           ))}
