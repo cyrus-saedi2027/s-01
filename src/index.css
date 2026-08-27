@@ -1,0 +1,133 @@
+@import "./fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --shell-x: clamp(1.25rem, 4vw, 4.5rem);
+    --accent: #fd321c;
+  }
+
+  * {
+    @apply border-hair;
+  }
+
+  html {
+    background-color: #000;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: auto;
+  }
+
+  body {
+    @apply bg-ink text-paper font-display antialiased;
+    margin: 0;
+    overflow-x: hidden;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  /* The custom cursor replaces the pointer on fine-pointer devices only. */
+  @media (pointer: fine) {
+    body.has-custom-cursor,
+    body.has-custom-cursor * {
+      cursor: none !important;
+    }
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #000;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.32);
+  }
+
+  /* Lock the page while the preloader runs. */
+  body[data-locked="true"] {
+    overflow: hidden;
+    height: 100vh;
+  }
+}
+
+@layer components {
+  .shell {
+    padding-inline: var(--shell-x);
+    margin-inline: auto;
+    width: 100%;
+    max-width: theme("maxWidth.shell");
+  }
+
+  /* Small all-caps eyebrow used above every section title. */
+  .eyebrow {
+    @apply flex items-center gap-3 text-2xs uppercase tracking-wider text-dim font-sans font-medium;
+  }
+
+  .rule {
+    @apply h-px w-full bg-hair;
+  }
+
+  /* Fine grain laid over the whole page — keeps the flat black from banding. */
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: -50%;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grainShift 0.7s steps(3) infinite;
+  }
+
+  @keyframes grainShift {
+    0% { transform: translate(0, 0); }
+    33% { transform: translate(-3%, 2%); }
+    66% { transform: translate(2%, -3%); }
+    100% { transform: translate(0, 0); }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Masks a line of type so children can slide up from behind it.
+     The padding/margin pair extends the mask below the baseline so descenders
+     (g, y, p) are not shaved off, without changing layout spacing. */
+  .clip-line {
+    overflow: hidden;
+    display: block;
+    padding-bottom: 0.16em;
+    margin-bottom: -0.16em;
+  }
+
+  .edge-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
