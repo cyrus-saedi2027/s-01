@@ -31,11 +31,11 @@ src/
       Marquee.tsx          seamless CSS ticker
       MagneticButton.tsx   pointer-following buttons, rotating circle button
       Cursor.tsx           custom pointer — two variants, see below
+      ScrollProgress.tsx   right-edge scroll indicator, auto-hiding
       Preloader.tsx        intro curtain with counter
     sections/              Hero, About, Works, Solutions, Process,
                            Testimonials, Awards, CTA, Footer
 scripts/
-  generate-hero-art.mjs    draws the hero landscape
   build-standalone.mjs     inlines everything into one HTML file
 public/
   art/                     procedurally generated SVG artwork
@@ -50,17 +50,26 @@ Two pointers ship in `src/components/ui/Cursor.tsx`. Switch with the
 | Variant | Behaviour |
 |---|---|
 | `ring` | Precise dot with a hollow outlined circle trailing behind it, swelling into a labelled disc over flagged elements. |
-| `comet` | Precise dot with a solid disc trailing behind it, stretched along the direction of travel and thinned as it speeds up, relaxing back to a circle at rest. |
+| `comet` | Precise dot with a solid shape trailing behind it. Standing still it is a circle; moving, it draws into a tapered capsule pointing along the direction of travel. |
+
+The comet's outline is the convex hull of two circles — a head of radius `R`, a
+tail of radius `r`, centres `d` apart — which is a rounded head easing into a
+narrower tail. With `d = 0` and `R = r` it degenerates to a plain circle, so a
+resting pointer needs no special case. Speed feeds `R`, `r` and `d` through a
+smoothstep, so small movements barely deform it and fast ones taper off instead
+of running away. The follower's spring stiffness is the "magnet strength":
+lower means more trailing lag and a gentler settle.
 
 Elements opt into pointer states with `data-cursor="hide" | "view" | "drag"`.
 Both variants are disabled on coarse pointers.
 
 ## Swapping the hero image
 
-`heroImage` in `src/data/site.ts` points at `/art/hero.svg`. Drop any
-portrait-ish image into `public/art/` and change that one path — the card is
-3:4 and uses `object-fit: cover`. To regenerate the bundled artwork instead,
-run `node scripts/generate-hero-art.mjs`.
+`heroImage` in `src/data/site.ts` names a webp and a jpeg fallback in
+`public/art/`. Drop your own files there and change those paths — the card is
+3:4 and uses `object-fit: cover`. `heroBlur` beside it is a 24×32 data-URI
+preview that fills the card until the real file decodes; regenerate it from any
+new image if you swap one in.
 
 ## Design system
 
@@ -95,6 +104,13 @@ Tokens live in `tailwind.config.ts`.
   whole `transform` property, silently discarding classes like
   `-translate-x-1/2`. Anything Framer animates does its centring through
   motion values instead.
+- **Menu performance** — the panel has a fixed height and animates
+  `translateY`, so opening is a composited transform rather than a per-frame
+  layout pass, and its warm tint is a static radial gradient. An animated
+  element carrying a large `blur()` has to re-rasterise every frame, which is
+  what made an earlier version stutter.
+- **Scroll indicator** — right edge, vertically centred, hidden until you
+  scroll past a threshold and fading out about a second after you stop.
 - **Smooth scroll** — drives `window.scrollTo` rather than transforming a
   wrapper, which keeps `position: sticky`, IntersectionObserver and anchor
   links working. Disabled on touch and under `prefers-reduced-motion`.

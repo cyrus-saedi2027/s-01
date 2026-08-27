@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { identity, navLinks, socials } from "@/data/site";
+import { navLinks } from "@/data/site";
 
 const EASE = [0.76, 0, 0.24, 1] as const;
 
 /**
  * Navigation panel that drops from the top edge over roughly half the
- * viewport. The surface is frosted, lit from behind by a warm bloom, and each
- * link swaps its letters on hover.
+ * viewport.
+ *
+ * Two things keep it smooth. The panel has a fixed height and animates
+ * `translateY`, so opening is a composited transform rather than a per-frame
+ * layout pass. And the warm tint is a static radial gradient — an animated
+ * element with a large `blur()` has to re-rasterise every frame, which is what
+ * made the earlier version stutter.
  */
 export function MenuOverlay({
   open,
@@ -32,12 +37,11 @@ export function MenuOverlay({
     <AnimatePresence>
       {open && (
         <>
-          {/* Click-away region below the panel. */}
           <motion.button
             type="button"
             aria-label="Close menu"
             onClick={onClose}
-            className="fixed inset-0 z-[70] cursor-default bg-ink/40 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[70] cursor-default bg-ink/50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -46,26 +50,20 @@ export function MenuOverlay({
 
           <motion.nav
             id="site-menu"
-            className="fixed inset-x-0 top-0 z-[72] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#0b0b0d]/85 backdrop-blur-2xl"
-            initial={{ height: 0 }}
-            animate={{ height: "min(58svh, 640px)" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.72, ease: EASE }}
+            className="fixed inset-x-0 top-0 z-[72] h-[min(56svh,560px)] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#08080a]/72 backdrop-blur-2xl"
+            style={{ willChange: "transform" }}
+            initial={{ y: "-100%" }}
+            animate={{ y: "0%" }}
+            exit={{ y: "-100%" }}
+            transition={{ duration: 0.68, ease: EASE }}
           >
-            {/* Warm bloom sitting behind the list. */}
-            <motion.span
+            {/* Warm tint — a plain gradient, no filters. */}
+            <span
               aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[74%] w-[58%] rounded-full blur-[90px]"
-              style={{ translateX: "-50%", translateY: "-50%" }}
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 0.62, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.9, delay: 0.1 }}
-            >
-              <span className="block h-full w-full rounded-full bg-[radial-gradient(circle_at_50%_50%,#ff8a00_0%,#fd321c_38%,transparent_72%)]" />
-            </motion.span>
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(78%_62%_at_50%_56%,rgba(253,50,28,0.30)_0%,rgba(255,138,0,0.11)_42%,transparent_74%)]"
+            />
 
-            <div className="relative flex h-full flex-col items-center justify-center px-[var(--shell-x)] pb-20 pt-20">
+            <div className="relative flex h-full items-center justify-center px-[var(--shell-x)] pt-14">
               <ul className="flex flex-col items-center">
                 {navLinks.map((link, i) => (
                   <li key={link.label}>
@@ -74,39 +72,17 @@ export function MenuOverlay({
                       onClick={onClose}
                       onMouseEnter={() => setHovered(i)}
                       onMouseLeave={() => setHovered(null)}
-                      className="block px-4 py-0.5"
+                      className="block px-4 py-[0.15em]"
                     >
                       <SwapLabel
                         text={link.label}
                         active={hovered === i}
-                        delay={0.3 + i * 0.06}
+                        delay={0.26 + i * 0.055}
                       />
                     </a>
                   </li>
                 ))}
               </ul>
-
-              {/* Contact rail along the bottom of the panel. */}
-              <motion.div
-                className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-between gap-3 px-[var(--shell-x)] pb-5 font-sans text-2xs uppercase tracking-wider text-dim"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ delay: 0.55, duration: 0.5 }}
-              >
-                <a href={`mailto:${identity.email}`} className="transition-colors hover:text-paper">
-                  {identity.email}
-                </a>
-                <ul className="flex gap-x-5">
-                  {socials.map((s) => (
-                    <li key={s.label}>
-                      <a href={s.href} className="transition-colors hover:text-accent">
-                        {s.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
             </div>
           </motion.nav>
         </>
@@ -132,11 +108,11 @@ function SwapLabel({
 
   return (
     <motion.span
-      className="relative block overflow-hidden text-[clamp(1.9rem,5.2vw,4rem)] font-semibold uppercase leading-[1.12] tracking-tight"
+      className="relative block overflow-hidden text-[clamp(1.05rem,2.6vw,2.1rem)] font-semibold uppercase leading-[1.2] tracking-tight"
       initial={{ y: "110%", opacity: 0 }}
       animate={{ y: "0%", opacity: 1 }}
       exit={{ y: "110%", opacity: 0 }}
-      transition={{ duration: 0.7, delay, ease: EASE }}
+      transition={{ duration: 0.62, delay, ease: EASE }}
     >
       <span className="flex">
         {chars.map((ch, i) => (
@@ -144,9 +120,9 @@ function SwapLabel({
             key={i}
             className="inline-block whitespace-pre will-change-transform"
             animate={{ y: active ? "-105%" : "0%" }}
-            transition={{ duration: 0.42, ease: EASE, delay: i * 0.02 }}
+            transition={{ duration: 0.4, ease: EASE, delay: i * 0.018 }}
           >
-            {ch === " " ? " " : ch}
+            {ch === " " ? " " : ch}
           </motion.span>
         ))}
       </span>
@@ -157,9 +133,9 @@ function SwapLabel({
             className="inline-block whitespace-pre will-change-transform"
             initial={{ y: "105%" }}
             animate={{ y: active ? "0%" : "105%" }}
-            transition={{ duration: 0.42, ease: EASE, delay: i * 0.02 }}
+            transition={{ duration: 0.4, ease: EASE, delay: i * 0.018 }}
           >
-            {ch === " " ? " " : ch}
+            {ch === " " ? " " : ch}
           </motion.span>
         ))}
       </span>

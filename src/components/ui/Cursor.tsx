@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 /**
@@ -137,9 +137,49 @@ function RingFollower({ x, y, state }: { x: MV; y: MV; state: State }) {
 }
 
 /**
- * Solid disc that trails the dot and deforms with motion: it stretches along
- * the direction of travel and narrows across it, so fast movement reads as a
- * streak and a resting pointer settles back into a circle.
+ * Builds a "tapered capsule": the outline wrapping a head circle of radius R
+ * and a tail circle of radius r whose centres sit `d` apart. It is the convex
+ * hull of the two circles — the two external tangent lines plus an arc at each
+ * end — which gives a rounded head easing into a narrower tail. With d = 0 and
+ * R = r it degenerates to a plain circle, so a resting pointer is just a dot.
+ */
+function taperedCapsule(R: number, r: number, d: number) {
+  // Guard the degenerate case: one circle swallowing the other.
+  if (d < 0.001 || d <= Math.abs(R - r)) {
+    const big = Math.max(R, r);
+    return `M ${-big} 0 a ${big} ${big} 0 1 0 ${big * 2} 0 a ${big} ${big} 0 1 0 ${-big * 2} 0`;
+  }
+
+  // Tangent contact angle, measured off the axis joining the centres.
+  const alpha = Math.asin((R - r) / d);
+  const phi = Math.PI / 2 + alpha;
+
+  // The head leads at +d along the local x axis; the tail trails at the origin.
+  // The shape is then rotated so +x points along the direction of travel.
+  const hx = d;
+  const p = (n: number) => n.toFixed(2);
+
+  const h1 = [hx - R * Math.cos(phi), R * Math.sin(phi)];
+  const h2 = [hx - R * Math.cos(phi), -R * Math.sin(phi)];
+  const t1 = [-r * Math.cos(phi), r * Math.sin(phi)];
+  const t2 = [-r * Math.cos(phi), -r * Math.sin(phi)];
+
+  return [
+    `M ${p(h1[0])} ${p(h1[1])}`,
+    // Around the head, the long way, past the leading edge.
+    `A ${p(R)} ${p(R)} 0 1 0 ${p(h2[0])} ${p(h2[1])}`,
+    `L ${p(t2[0])} ${p(t2[1])}`,
+    // Around the tail, the short way.
+    `A ${p(r)} ${p(r)} 0 0 0 ${p(t1[0])} ${p(t1[1])}`,
+    "Z",
+  ].join(" ");
+}
+
+/**
+ * Solid shape that trails the dot. Standing still it is a circle; moving, it
+ * draws out into a tapered capsule pointing along the direction of travel.
+ * The spring is deliberately loose so the shape lags and settles softly rather
+ * than snapping to the pointer.
  */
 function CometFollower({
   x,
@@ -154,47 +194,74 @@ function CometFollower({
   vy: MV;
   state: State;
 }) {
-  // Softer spring than the ring, so the trailing lag is visible.
-  const fx = useSpring(x, { stiffness: 190, damping: 22, mass: 0.7 });
-  const fy = useSpring(y, { stiffness: 190, damping: 22, mass: 0.7 });
+  // Loose and well damped: this is the "magnet strength". Lower stiffness
+  // means more trailing lag and a gentler settle.
+  const fx = useSpring(x, { stiffness: 145, damping: 21, mass: 0.8 });
+  const fy = useSpring(y, { stiffness: 145, damping: 21, mass: 0.8 });
 
-  const speed = useTransform<number, number>([vx, vy], ([a, b]) =>
-    Math.min(Math.hypot(a as number, b as number), 3.4)
-  );
-  // Capped so the disc elongates noticeably without turning into a smear.
-  const stretch = useTransform(speed, [0, 3.4], [1, 1.7]);
-  const squash = useTransform(speed, [0, 3.4], [1, 0.62]);
-  const angle = useTransform<number, number>([vx, vy], ([a, b]) => {
-    const sp = Math.hypot(a as number, b as number);
-    // Below a threshold the direction is noise, so hold the last stable angle.
-    return sp < 0.06 ? 0 : (Math.atan2(b as number, a as number) * 180) / Math.PI;
-  });
-  const smoothAngle = useSpring(angle, { stiffness: 260, damping: 30 });
-  // Keeps the label upright inside the tilted disc.
-  const counterAngle = useTransform(smoothAngle, (a) => -a);
+  const BASE = state === "view" ? 52 : state === "drag" ? 38 : state === "hide" ? 26 : 15;
 
-  const size = state === "view" ? 104 : state === "drag" ? 76 : state === "hide" ? 52 : 30;
+  const [path, setPath] = useState(() => taperedCapsule(BASE, BASE, 0));
+  const [angle, setAngle] = useState(0);
+  const lastAngle = useRef(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const tick = () => {
+      const sx = vx.get();
+      const sy = vy.get();
+      const speed = Math.hypot(sx, sy);
+
+      // Ease the response so small movements barely deform the shape and fast
+      // ones taper off rather than running away.
+      const t = Math.min(speed / 2.6, 1);
+      const eased = t * t * (3 - 2 * t); // smoothstep
+
+      const head = BASE * (1 + eased * 0.1);
+      const tail = BASE * (1 - eased * 0.55);
+      const gap = BASE * eased * 1.15;
+
+      setPath(taperedCapsule(head, tail, gap));
+
+      // Direction is noise at low speed, so hold the previous angle.
+      if (speed > 0.12) lastAngle.current = (Math.atan2(sy, sx) * 180) / Math.PI;
+      setAngle(lastAngle.current);
+
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [vx, vy, BASE]);
+
+  const EXTENT = BASE * 3;
 
   return (
     <motion.div
       className="absolute left-0 top-0"
-      style={{ x: fx, y: fy, translateX: "-50%", translateY: "-50%", rotate: smoothAngle }}
+      style={{ x: fx, y: fy, translateX: "-50%", translateY: "-50%" }}
     >
       <motion.div
-        className="grid place-items-center rounded-full"
-        style={{ scaleX: stretch, scaleY: squash }}
-        animate={{
-          width: size,
-          height: size,
-          backgroundColor: state === "view" ? "#fd321c" : "#ffffff",
-          opacity: state === "hide" ? 0.45 : state === "default" ? 0.85 : 1,
-        }}
-        transition={{ type: "spring", stiffness: 300, damping: 26 }}
+        style={{ rotate: angle }}
+        transition={{ type: "spring", stiffness: 170, damping: 24 }}
       >
-        <motion.span style={{ rotate: counterAngle }}>
-          <CursorLabel state={state} inverted />
-        </motion.span>
+        <svg
+          width={EXTENT * 2}
+          height={EXTENT * 2}
+          viewBox={`${-EXTENT} ${-EXTENT} ${EXTENT * 2} ${EXTENT * 2}`}
+          style={{ display: "block", transform: "translate(-50%,-50%)", marginLeft: "50%", marginTop: "50%" }}
+        >
+          <path
+            d={path}
+            fill={state === "view" ? "#fd321c" : "#ffffff"}
+            opacity={state === "hide" ? 0.4 : state === "default" ? 0.8 : 1}
+          />
+        </svg>
       </motion.div>
+      {(state === "view" || state === "drag") && (
+        <span className="absolute inset-0 grid place-items-center">
+          <CursorLabel state={state} />
+        </span>
+      )}
     </motion.div>
   );
 }

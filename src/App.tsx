@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { motion, useScroll, useSpring } from "framer-motion";
 
 import { Preloader } from "./components/ui/Preloader";
 import { Cursor, type CursorVariant } from "./components/ui/Cursor";
+import { ScrollProgress } from "./components/ui/ScrollProgress";
 import { Header } from "./components/Header";
 import { MenuOverlay } from "./components/MenuOverlay";
 
@@ -32,13 +32,6 @@ export default function App() {
   // Inertial wheel scrolling, enabled once the curtain has lifted.
   useSmoothScroll(ready && !menuOpen);
 
-  const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, {
-    stiffness: 140,
-    damping: 28,
-    restDelta: 0.001,
-  });
-
   // Anchor links have to bypass the smooth-scroll target, so handle them here.
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -63,12 +56,7 @@ export default function App() {
       <Preloader onDone={() => setReady(true)} />
       <Cursor variant={CURSOR_VARIANT} />
 
-      {/* Scroll progress hairline */}
-      <motion.div
-        style={{ scaleX: progress }}
-        className="fixed inset-x-0 top-0 z-[85] h-[2px] origin-left bg-accent"
-        aria-hidden="true"
-      />
+      <ScrollProgress />
 
       <Header
         ready={ready}

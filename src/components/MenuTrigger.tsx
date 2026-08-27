@@ -46,15 +46,17 @@ export function MenuTrigger({
         animate={{ width: hover || open ? grown : base }}
         transition={{ duration: 0.5, ease: EASE }}
       />
-      <span className="relative block h-[13px] overflow-hidden font-sans text-[10px] font-semibold uppercase tracking-wider">
+      <span className="relative block h-[14px] overflow-hidden font-sans text-[11px] font-medium uppercase tracking-[0.05em] text-paper [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
         {/* The two captions ride in the same slot so one pushes the other out. */}
+        {/* The stack is two lines tall, so -50% advances it exactly one line.
+            -100% would clear the whole stack and show nothing. */}
         <motion.span
           className="block"
-          animate={{ y: open ? "-100%" : "0%" }}
+          animate={{ y: open ? "-50%" : "0%" }}
           transition={{ duration: 0.4, ease: EASE }}
         >
-          <span className="block leading-[13px]">Menu</span>
-          <span className="block leading-[13px]">Close</span>
+          <span className="block leading-[14px]">Menu</span>
+          <span className="block leading-[14px]">Close</span>
         </motion.span>
       </span>
     </button>

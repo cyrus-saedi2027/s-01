@@ -55,14 +55,22 @@ export function Header({
           <MenuTrigger open={menuOpen} onToggle={onMenu} />
         </div>
 
-        <a
+        {/* Contact is one of the menu's own entries, so it steps aside while
+            the panel is open rather than sitting on top of it. */}
+        <motion.a
           href="#contact"
           onMouseEnter={() => setHoverContact(true)}
           onMouseLeave={() => setHoverContact(false)}
-          className="pointer-events-auto inline-flex font-sans text-xs font-bold uppercase tracking-wide md:text-base"
+          animate={{ opacity: menuOpen ? 0 : 1 }}
+          transition={{ duration: 0.3 }}
+          aria-hidden={menuOpen}
+          className={cn(
+            "inline-flex font-sans text-xs font-bold uppercase tracking-wide md:text-base",
+            menuOpen ? "pointer-events-none" : "pointer-events-auto"
+          )}
         >
           <HoverStaggerLabel text="Contact" active={hoverContact} />
-        </a>
+        </motion.a>
       </div>
     </motion.header>
   );

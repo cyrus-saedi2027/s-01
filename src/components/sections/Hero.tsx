@@ -1,7 +1,7 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Marquee } from "../ui/Marquee";
-import { heroImage, heroMarquee, heroTagline, identity } from "@/data/site";
+import { heroBlur, heroImage, heroMarquee, heroTagline, identity } from "@/data/site";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -12,6 +12,7 @@ const EASE = [0.22, 1, 0.36, 1] as const;
  */
 export function Hero({ ready }: { ready: boolean }) {
   const ref = useRef<HTMLElement>(null);
+  const [loaded, setLoaded] = useState(false);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -64,12 +65,26 @@ export function Hero({ ready }: { ready: boolean }) {
           transition={{ duration: 1.15, delay: 0.25, ease: EASE }}
           className="group relative w-[min(80vw,340px)] overflow-hidden rounded-xl md:w-[min(42vw,400px)]"
         >
-          <div className="aspect-[3/4] w-full overflow-hidden">
-            <img
-              src={heroImage}
-              alt="Ink-wash landscape: a red sun over a snow-capped mountain, with maple leaves drifting across still water"
-              className="h-full w-full scale-105 object-cover transition-transform duration-[1.4s] ease-soft group-hover:scale-100"
-            />
+          <div
+            className="aspect-[3/4] w-full overflow-hidden bg-cover bg-center"
+            // The blurred preview sits behind the real file so the card is
+            // never an empty rectangle while the image decodes.
+            style={{ backgroundImage: `url(${heroBlur})` }}
+          >
+            <picture>
+              <source srcSet={heroImage.webp} type="image/webp" />
+              <img
+                src={heroImage.jpg}
+                alt={heroImage.alt}
+                width={900}
+                height={1200}
+                {...{ fetchpriority: "high" }}
+                onLoad={() => setLoaded(true)}
+                className={`h-full w-full scale-105 object-cover transition-[transform,opacity] duration-[1.4s] ease-soft group-hover:scale-100 ${
+                  loaded ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            </picture>
           </div>
           {/* Grounds the card against the black page. */}
           <span
