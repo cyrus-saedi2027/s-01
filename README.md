@@ -22,21 +22,45 @@ src/
     useSmoothScroll.ts     lerp-based inertial wheel scrolling
     useMediaQuery.ts       pointer / breakpoint / reduced-motion queries
   components/
-    Header.tsx             fixed bar, hides on scroll down
-    MenuOverlay.tsx        full-screen navigation curtain
+    Header.tsx             fixed bar: wordmark, menu control, contact
+    MenuTrigger.tsx        the slim bar that opens the menu
+    MenuOverlay.tsx        drop-down navigation panel
     ui/
       AnimatedText.tsx     character-rise headlines, hover letter-stagger
       Reveal.tsx           scroll reveals and line masks
       Marquee.tsx          seamless CSS ticker
       MagneticButton.tsx   pointer-following buttons, rotating circle button
-      Cursor.tsx           two-part custom pointer
+      Cursor.tsx           custom pointer — two variants, see below
       Preloader.tsx        intro curtain with counter
     sections/              Hero, About, Works, Solutions, Process,
                            Testimonials, Awards, CTA, Footer
+scripts/
+  generate-hero-art.mjs    draws the hero landscape
+  build-standalone.mjs     inlines everything into one HTML file
 public/
   art/                     procedurally generated SVG artwork
   fonts/                   self-hosted Poppins + Inter (SIL OFL 1.1)
 ```
+
+## Cursor variants
+
+Two pointers ship in `src/components/ui/Cursor.tsx`. Switch with the
+`CURSOR_VARIANT` constant at the top of `src/App.tsx`:
+
+| Variant | Behaviour |
+|---|---|
+| `ring` | Precise dot with a hollow outlined circle trailing behind it, swelling into a labelled disc over flagged elements. |
+| `comet` | Precise dot with a solid disc trailing behind it, stretched along the direction of travel and thinned as it speeds up, relaxing back to a circle at rest. |
+
+Elements opt into pointer states with `data-cursor="hide" | "view" | "drag"`.
+Both variants are disabled on coarse pointers.
+
+## Swapping the hero image
+
+`heroImage` in `src/data/site.ts` points at `/art/hero.svg`. Drop any
+portrait-ish image into `public/art/` and change that one path — the card is
+3:4 and uses `object-fit: cover`. To regenerate the bundled artwork instead,
+run `node scripts/generate-hero-art.mjs`.
 
 ## Design system
 
@@ -63,6 +87,14 @@ Tokens live in `tailwind.config.ts`.
 - **Process** — four cards pin in sequence over a `400vh` track. Cards stay
   opaque and darken under a scrim rather than fading, so the stack cannot
   bleed through itself.
+- **Menu** — the trigger is a slim bar at the top centre that lengthens on
+  hover; opening drops a frosted panel over the upper half of the viewport.
+  Each link holds two stacked copies of its label so hovering swaps white for
+  accent, one letter at a time.
+- **Framer transforms vs. Tailwind** — animating `scale` or `x` writes the
+  whole `transform` property, silently discarding classes like
+  `-translate-x-1/2`. Anything Framer animates does its centring through
+  motion values instead.
 - **Smooth scroll** — drives `window.scrollTo` rather than transforming a
   wrapper, which keeps `position: sticky`, IntersectionObserver and anchor
   links working. Disabled on touch and under `prefers-reduced-motion`.

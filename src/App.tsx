@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 
 import { Preloader } from "./components/ui/Preloader";
-import { Cursor } from "./components/ui/Cursor";
+import { Cursor, type CursorVariant } from "./components/ui/Cursor";
 import { Header } from "./components/Header";
 import { MenuOverlay } from "./components/MenuOverlay";
 
@@ -17,6 +17,13 @@ import { CTA } from "./components/sections/CTA";
 import { Footer } from "./components/sections/Footer";
 
 import { useSmoothScroll } from "./hooks/useSmoothScroll";
+
+/**
+ * Pointer style. "ring" trails a hollow outlined circle; "comet" trails a solid
+ * disc that stretches along the direction of travel. Both live in
+ * components/ui/Cursor.tsx.
+ */
+const CURSOR_VARIANT: CursorVariant = "comet";
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -54,7 +61,7 @@ export default function App() {
   return (
     <div id="top" className="grain relative min-h-screen bg-ink text-paper">
       <Preloader onDone={() => setReady(true)} />
-      <Cursor />
+      <Cursor variant={CURSOR_VARIANT} />
 
       {/* Scroll progress hairline */}
       <motion.div
