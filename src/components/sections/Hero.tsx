@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import { Marquee } from "../ui/Marquee";
-import { heroBlur, heroImage, heroMarquee, heroTagline, identity } from "@/data/site";
+import { heroImage, heroMarquee, heroTagline, identity } from "@/data/site";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -12,7 +12,6 @@ const EASE = [0.22, 1, 0.36, 1] as const;
  */
 export function Hero({ ready }: { ready: boolean }) {
   const ref = useRef<HTMLElement>(null);
-  const [loaded, setLoaded] = useState(false);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -57,41 +56,7 @@ export function Hero({ ready }: { ready: boolean }) {
         style={{ y: cardY, scale: cardScale }}
         className="relative z-10 flex justify-center px-[var(--shell-x)]"
       >
-        <motion.figure
-          initial={{ opacity: 0, y: 60, clipPath: "inset(100% 0 0 0)" }}
-          animate={
-            ready ? { opacity: 1, y: 0, clipPath: "inset(0% 0 0 0)" } : {}
-          }
-          transition={{ duration: 1.15, delay: 0.25, ease: EASE }}
-          className="group relative w-[min(80vw,340px)] overflow-hidden rounded-xl md:w-[min(42vw,400px)]"
-        >
-          <div
-            className="aspect-[3/4] w-full overflow-hidden bg-cover bg-center"
-            // The blurred preview sits behind the real file so the card is
-            // never an empty rectangle while the image decodes.
-            style={{ backgroundImage: `url(${heroBlur})` }}
-          >
-            <picture>
-              <source srcSet={heroImage.webp} type="image/webp" />
-              <img
-                src={heroImage.jpg}
-                alt={heroImage.alt}
-                width={900}
-                height={1200}
-                {...{ fetchpriority: "high" }}
-                onLoad={() => setLoaded(true)}
-                className={`h-full w-full scale-105 object-cover transition-[transform,opacity] duration-[1.4s] ease-soft group-hover:scale-100 ${
-                  loaded ? "opacity-100" : "opacity-0"
-                }`}
-              />
-            </picture>
-          </div>
-          {/* Grounds the card against the black page. */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10"
-          />
-        </motion.figure>
+        <TiltCard ready={ready} />
       </motion.div>
 
       {/* Tagline. */}
@@ -160,5 +125,74 @@ export function Hero({ ready }: { ready: boolean }) {
         </span>
       </motion.div>
     </section>
+  );
+}
+
+/**
+ * The hero image, tilting toward the pointer.
+ *
+ * Pointer offset drives motion values through springs, and the image layer
+ * counter-shifts a little so the picture drifts inside its frame — enough to
+ * feel like it has depth without becoming a gimmick. Everything is written to
+ * motion values, so moving the mouse never re-renders React.
+ */
+function TiltCard({ ready }: { ready: boolean }) {
+  const box = useRef<HTMLDivElement>(null);
+
+  // -0.5 .. 0.5 across the card in each axis.
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+
+  const spring = { stiffness: 150, damping: 18, mass: 0.6 };
+  const sx = useSpring(px, spring);
+  const sy = useSpring(py, spring);
+
+  const rotateY = useTransform(sx, [-0.5, 0.5], [-9, 9]);
+  const rotateX = useTransform(sy, [-0.5, 0.5], [7, -7]);
+  // The picture drifts against the tilt for a touch of parallax.
+  const shiftX = useTransform(sx, [-0.5, 0.5], [16, -16]);
+  const shiftY = useTransform(sy, [-0.5, 0.5], [12, -12]);
+
+  const onMove = (e: React.MouseEvent) => {
+    const r = box.current?.getBoundingClientRect();
+    if (!r) return;
+    px.set((e.clientX - r.left) / r.width - 0.5);
+    py.set((e.clientY - r.top) / r.height - 0.5);
+  };
+
+  const reset = () => {
+    px.set(0);
+    py.set(0);
+  };
+
+  return (
+    <motion.figure
+      ref={box}
+      onMouseMove={onMove}
+      onMouseLeave={reset}
+      initial={{ opacity: 0, y: 60, clipPath: "inset(100% 0 0 0)" }}
+      animate={ready ? { opacity: 1, y: 0, clipPath: "inset(0% 0 0 0)" } : {}}
+      transition={{ duration: 1.15, delay: 0.25, ease: EASE }}
+      style={{ perspective: 900 }}
+      className="group relative w-[min(80vw,340px)] md:w-[min(42vw,400px)]"
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="relative overflow-hidden rounded-xl"
+      >
+        <div className="aspect-[3/4] w-full overflow-hidden">
+          <motion.img
+            src={heroImage.src}
+            alt={heroImage.alt}
+            style={{ x: shiftX, y: shiftY }}
+            className="h-full w-full scale-[1.12] object-cover"
+          />
+        </div>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10"
+        />
+      </motion.div>
+    </motion.figure>
   );
 }

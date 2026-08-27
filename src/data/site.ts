@@ -7,19 +7,17 @@ export const identity = {
 };
 
 /**
- * Hero artwork. Swap these for your own picture in `public/art/` — the card is
- * 3:4 and uses object-fit: cover, so any portrait-ish crop works. The webp is
- * served first with the jpeg as a fallback, and `heroBlur` is a 24x32 preview
- * that fills the card until the real file decodes.
+ * Hero artwork. The card is 3:4 and uses object-fit: cover, so any
+ * portrait-ish file works — point `src` at whatever you drop into
+ * `public/art/`. A photographic pair (hero.webp / hero.jpg) is also bundled
+ * there if you want to switch back to it.
+ *
+ * The bundled default is drawn by scripts/generate-hero-art.mjs.
  */
 export const heroImage = {
-  webp: "/art/hero.webp",
-  jpg: "/art/hero.jpg",
+  src: "/art/hero.svg",
   alt: "Ink-wash landscape: a red sun over a snow-capped mountain, a lakeside pagoda, and maple leaves drifting onto still water",
 };
-
-export const heroBlur =
-  "data:image/jpeg;base64,/9j/2wBDAA8LDA0MCg8NDA0REA8SFyYZFxUVFy8iJBwmODE7OjcxNjU9RVhLPUFUQjU2TWlOVFteY2RjPEpsdGxgc1hhY1//2wBDARARERcUFy0ZGS1fPzY/X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX1//wAARCAAgABgDASIAAhEBAxEB/8QAGQAAAwEBAQAAAAAAAAAAAAAAAAQFBgID/8QAJRAAAQMDAwQDAQAAAAAAAAAAAgEDBAAFERITIQYiMVEjQXEy/8QAFwEAAwEAAAAAAAAAAAAAAAAAAAIDAf/EABoRAQEBAQADAAAAAAAAAAAAAAEAEQIiMUH/2gAMAwEAAhEDEQA/ANRb7XsRNlTLnzmvWPbdlS0mun9qe5c5jg6QbVM+q7iz5beRNksIn3S4VXvpVaq3IjyAJsS7W/6opJiW33I3GVsjXKr9LRQb9hzfH1RrdNSP8hKakXlFSk7r1QTbqtNhxjC8VVYmRUxvAHPqlbnBt9wJTawhiPCe6DCztV1su31DIaiuMajVVLKFminovT5OQ3ULQr2rj8op9KaN/9k=";
 
 /** Sits under the hero card, split into words for the staggered reveal. */
 export const heroTagline = "An independent creative Designer & Developer based in Netherlands";

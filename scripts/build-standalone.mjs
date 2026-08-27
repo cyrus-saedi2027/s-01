@@ -48,8 +48,22 @@ css = css.replace(/url\(\/fonts\/([^)"']+\.woff2)\)/g, (_, name) => {
 // Artwork referenced from either bundle.
 let artCount = 0;
 const artDir = path.join(ROOT, "public/art");
+const MIME = {
+  ".svg": "image/svg+xml",
+  ".webp": "image/webp",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".avif": "image/avif",
+  ".gif": "image/gif",
+};
 for (const file of fs.readdirSync(artDir)) {
-  const uri = `data:image/svg+xml;base64,${b64(path.join(artDir, file))}`;
+  const mime = MIME[path.extname(file).toLowerCase()];
+  if (!mime) {
+    console.warn(`skipping ${file}: unknown image type`);
+    continue;
+  }
+  const uri = `data:${mime};base64,${b64(path.join(artDir, file))}`;
   const before = js + css;
   js = js.split(`/art/${file}`).join(uri);
   css = css.split(`/art/${file}`).join(uri);

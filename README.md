@@ -36,6 +36,7 @@ src/
     sections/              Hero, About, Works, Solutions, Process,
                            Testimonials, Awards, CTA, Footer
 scripts/
+  generate-hero-art.mjs    draws the hero landscape
   build-standalone.mjs     inlines everything into one HTML file
 public/
   art/                     procedurally generated SVG artwork
@@ -65,11 +66,14 @@ Both variants are disabled on coarse pointers.
 
 ## Swapping the hero image
 
-`heroImage` in `src/data/site.ts` names a webp and a jpeg fallback in
-`public/art/`. Drop your own files there and change those paths — the card is
-3:4 and uses `object-fit: cover`. `heroBlur` beside it is a 24×32 data-URI
-preview that fills the card until the real file decodes; regenerate it from any
-new image if you swap one in.
+`heroImage.src` in `src/data/site.ts` points at `/art/hero.svg`. Drop any
+portrait-ish file into `public/art/` and change that one path — the card is 3:4
+and uses `object-fit: cover`. A photographic pair (`hero.webp` / `hero.jpg`) is
+bundled there too if you want to switch to it. To redraw the bundled artwork,
+run `node scripts/generate-hero-art.mjs`.
+
+The card tilts toward the pointer: offset drives motion values through springs,
+and the picture counter-shifts inside its frame for a little parallax.
 
 ## Design system
 
@@ -112,6 +116,12 @@ Tokens live in `tailwind.config.ts`.
   frame, which is what made an earlier version stutter.
 - **Scroll indicator** — right edge, vertically centred, hidden until you
   scroll past a threshold and fading out about a second after you stop.
+- **The comet cursor never re-renders React.** One rAF loop measures the
+  pointer's own motion values and writes the path and rotation straight to the
+  DOM. Driving them from state instead re-rendered ~120 times a second and
+  stuttered, and springs fed from that state restarted every frame and
+  jittered. Its heading is accumulated unwrapped, because `atan2` flips
+  between +pi and -pi and following that jump spins the shape a full turn.
 - **Smooth scroll** — drives `window.scrollTo` rather than transforming a
   wrapper, which keeps `position: sticky`, IntersectionObserver and anchor
   links working. Disabled on touch and under `prefers-reduced-motion`.
