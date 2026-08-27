@@ -14,6 +14,10 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
 const OUT = path.join(ROOT, "zaylamonroe-standalone.html");
+/* Some hosts wrap the page in their own document skeleton, so `--fragment`
+   emits the same bundle without the outer html/head/body tags. */
+const FRAGMENT = process.argv.includes("--fragment");
+const OUT_FRAGMENT = path.join(ROOT, "zaylamonroe-embed.html");
 
 if (!fs.existsSync(DIST)) {
   console.error('dist/ not found — run "npm run build" first.');
@@ -55,27 +59,30 @@ for (const file of fs.readdirSync(artDir)) {
 // A module script must not contain a literal closing script tag.
 js = js.replace(/<\/script>/gi, "<\\/script>");
 
-fs.writeFileSync(
-  OUT,
-  `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+const body = `<title>Zayla Monroe</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Zayla Monroe — Creative Designer &amp; Developer</title>
 <style>
 ${css}
 </style>
-</head>
-<body>
 <div id="root"></div>
 <script type="module">
 ${js}
 </script>
-</body>
+`;
+
+const target = FRAGMENT ? OUT_FRAGMENT : OUT;
+fs.writeFileSync(
+  target,
+  FRAGMENT
+    ? body
+    : `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+${body}</body>
 </html>
 `
 );
 
 console.log(`inlined ${fontCount} fonts, ${artCount} artwork files`);
-console.log(`wrote ${path.relative(ROOT, OUT)} (${(fs.statSync(OUT).size / 1024 / 1024).toFixed(2)} MB)`);
+console.log(`wrote ${path.relative(ROOT, target)} (${(fs.statSync(target).size / 1024 / 1024).toFixed(2)} MB)`);
