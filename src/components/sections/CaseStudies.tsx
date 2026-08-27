@@ -122,8 +122,8 @@ function FeatureRow({
       ref={ref}
       className={`grid items-center gap-10 lg:gap-14 ${
         flipped
-          ? "lg:grid-cols-[1.7fr_1fr]"
-          : "lg:grid-cols-[1fr_1.7fr] lg:[&>*:first-child]:order-2"
+          ? "lg:grid-cols-[1.28fr_1fr]"
+          : "lg:grid-cols-[1fr_1.28fr] lg:[&>*:first-child]:order-2"
       }`}
     >
       {/* Cover */}
