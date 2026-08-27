@@ -31,7 +31,8 @@ src/
       Marquee.tsx          seamless CSS ticker
       MagneticButton.tsx   pointer-following buttons, rotating circle button
       Cursor.tsx           custom pointer — two variants, see below
-      MarqueeLabel.tsx     section eyebrow as a masked ticker
+      MarqueeLabel.tsx     section eyebrow as a masked ticker — the fade sits
+                           on the static wrapper, not the moving track
       ParallaxImage.tsx    image that drifts toward the pointer
       ScrollProgress.tsx   right-edge scroll indicator, auto-hiding
       Preloader.tsx        intro curtain with counter
@@ -124,12 +125,15 @@ Tokens live in `tailwind.config.ts`.
   frame, which is what made an earlier version stutter.
 - **Scroll indicator** — right edge, vertically centred, hidden until you
   scroll past a threshold and fading out about a second after you stop.
-- **Case studies** — each cover enters sheared over and unwinds to square as it
-  crosses the viewport, with the copy opposite rising off the same scroll
-  range. The rows sit in an `overflow-x-clip` wrapper: rotating a wide element
-  widens its footprint and would otherwise push the page sideways on narrow
-  screens. `clip` rather than `hidden`, because `hidden` creates a scroll
-  container and would break the sticky gallery below it.
+- **Case studies** — each cover starts pushed off the side of the screen and
+  turned away from the viewer, so it reads as a trapezoid. As the row rises it
+  slides in and the turn unwinds, landing square and fully on screen when the
+  row reaches the middle of the viewport. The turn is a real `rotateY` under
+  perspective, not a flat shear: a shear keeps both vertical edges the same
+  height, and the point is that the near edge is taller than the far one. The
+  rows sit in an `overflow-x-clip` wrapper at viewport width — inside the shell
+  the card would be cut at the page margin instead of the screen edge, and
+  `hidden` would create a scroll container that breaks the sticky gallery.
 - **Gallery wall** — deliberately taller than the window it is seen through, so
   even at rest it overflows its mask and the columns' parallax can never open a
   gap. The middle column runs against the outer two. Centring is done by the

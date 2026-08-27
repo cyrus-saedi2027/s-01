@@ -4,9 +4,12 @@ import { cn } from "@/lib/utils";
  * Section eyebrow as a horizontal ticker.
  *
  * The label repeats inside a narrow clipped window, so a word slides out one
- * edge and the next copy enters from the other. Both edges are masked, which
- * is what makes text dissolve at the boundary instead of being cut by a hard
- * line.
+ * edge and the next copy enters from the other.
+ *
+ * The fade lives on the static wrapper, not on the moving track. Masking the
+ * track makes the soft edge travel along with the text, which reads as a hard
+ * cut at the window boundary; masking the wrapper keeps the fade pinned where
+ * the text actually crosses out of view.
  */
 export function MarqueeLabel({
   text,
@@ -27,34 +30,21 @@ export function MarqueeLabel({
   // the loop never shows a gap.
   const copies = Array.from({ length: 4 });
 
+  const fade =
+    "linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%)";
+
   return (
     <div
       className={cn("relative overflow-hidden", className)}
-      style={{ width }}
+      style={{ width, maskImage: fade, WebkitMaskImage: fade }}
       aria-label={text}
     >
-      {/* Soft edges — the reason the text fades out rather than clipping. */}
-      <div
-        className="pointer-events-none absolute inset-0 z-10"
-        style={{
-          maskImage:
-            "linear-gradient(to right, transparent, #000 18%, #000 82%, transparent)",
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent, #000 18%, #000 82%, transparent)",
-        }}
-      />
       <div
         className={cn(
           "flex w-max flex-nowrap",
           reverse ? "animate-marquee-reverse" : "animate-marquee"
         )}
-        style={{
-          ["--marquee-duration" as string]: `${duration}s`,
-          maskImage:
-            "linear-gradient(to right, transparent, #000 18%, #000 82%, transparent)",
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent, #000 18%, #000 82%, transparent)",
-        }}
+        style={{ ["--marquee-duration" as string]: `${duration}s` }}
       >
         {/* Two halves so translating by -50% lands on an identical frame. */}
         {[0, 1].map((half) => (
@@ -62,7 +52,7 @@ export function MarqueeLabel({
             {copies.map((_, i) => (
               <span
                 key={i}
-                className="flex shrink-0 items-center gap-3 whitespace-nowrap px-3 font-sans text-2xs font-semibold uppercase tracking-wider text-accent"
+                className="flex shrink-0 items-center gap-2 whitespace-nowrap px-2 font-sans text-2xs font-semibold uppercase tracking-wider text-accent"
               >
                 <span aria-hidden="true">—</span>
                 {text}

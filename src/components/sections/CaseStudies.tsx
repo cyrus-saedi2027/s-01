@@ -33,14 +33,16 @@ export function CaseStudies() {
         </div>
       </div>
 
-      {/* The covers are rotated, which widens their footprint and can push the
-          page sideways on narrow screens. `clip` confines that without creating
-          a scroll container — `hidden` would, and would break the sticky
-          gallery further down. */}
-      <div className="shell flex flex-col gap-28 overflow-x-clip md:gap-44">
-        {projects.map((p, i) => (
-          <FeatureRow key={p.title} project={p} index={i} flipped={i % 2 === 1} />
-        ))}
+      {/* Clipping at viewport width rather than inside the shell lets a card
+          run past the page margin to the screen edge, which is where it starts
+          before sliding in. `clip` rather than `hidden`: `hidden` creates a
+          scroll container and would break the sticky gallery below. */}
+      <div className="overflow-x-clip">
+        <div className="shell flex flex-col gap-28 md:gap-44">
+          {projects.map((p, i) => (
+            <FeatureRow key={p.title} project={p} index={i} flipped={i % 2 === 1} />
+          ))}
+        </div>
       </div>
 
       <GalleryWall />
@@ -49,9 +51,17 @@ export function CaseStudies() {
 }
 
 /**
- * One project row. The cover enters sheared over and unwinds to square as it
- * crosses the viewport, while the copy opposite rises into place. The two run
- * off the same scroll range so they resolve together.
+ * One project row.
+ *
+ * The cover starts pushed off the side of the screen and turned away from the
+ * viewer, so it reads as a trapezoid rather than a rectangle. As the row rises
+ * it slides in and the turn unwinds, landing square and fully on screen at the
+ * point the row reaches the middle of the viewport. The copy opposite runs off
+ * the same scroll range so the two resolve together.
+ *
+ * The turn is a real `rotateY` under perspective, not a flat shear — a shear
+ * keeps both vertical edges the same height, and the whole point here is that
+ * the near edge is taller than the far one.
  */
 function FeatureRow({
   project,
@@ -68,29 +78,36 @@ function FeatureRow({
     offset: ["start end", "center center"],
   });
 
-  // Smoothing keeps the shear from tracking every scroll jitter.
+  // Smoothing keeps the turn from tracking every scroll jitter.
   const p = useSpring(scrollYProgress, { stiffness: 90, damping: 24, restDelta: 0.001 });
 
-  // Mirror the lean so each row tips away from its own side.
+  // +1 when the cover sits on the right, -1 when it sits on the left, so each
+  // row leans away from its own side.
   const dir = flipped ? -1 : 1;
-  const skewY = useTransform(p, [0, 1], [4.5 * dir, 0]);
-  const rotate = useTransform(p, [0, 1], [-1.6 * dir, 0]);
-  const scale = useTransform(p, [0, 1], [0.88, 1]);
-  const lift = useTransform(p, [0, 1], [70, 0]);
 
-  const textX = useTransform(p, [0, 1], [30 * -dir, 0]);
+  // Negative rotateY brings the right edge toward the viewer, making it the
+  // taller one; mirrored for a cover on the left.
+  const rotateY = useTransform(p, [0, 1], [-19 * dir, 0]);
+  const rotateZ = useTransform(p, [0, 1], [-2.4 * dir, 0]);
+  const x = useTransform(p, [0, 1], [`${15 * dir}%`, "0%"]);
+  const scale = useTransform(p, [0, 1], [0.9, 1]);
+
+  const textX = useTransform(p, [0, 1], [26 * -dir, 0]);
   const textOpacity = useTransform(p, [0.15, 0.75], [0, 1]);
 
   return (
     <div
       ref={ref}
-      className={`grid items-center gap-10 lg:grid-cols-2 lg:gap-16 ${
-        flipped ? "" : "lg:[&>*:first-child]:order-2"
+      className={`grid items-center gap-10 lg:gap-14 ${
+        flipped
+          ? "lg:grid-cols-[1.7fr_1fr]"
+          : "lg:grid-cols-[1fr_1.7fr] lg:[&>*:first-child]:order-2"
       }`}
+      style={{ perspective: 1400 }}
     >
       {/* Cover */}
       <motion.div
-        style={{ skewY, rotate, scale, y: lift }}
+        style={{ rotateY, rotateZ, x, scale, transformStyle: "preserve-3d" }}
         className="relative overflow-hidden rounded-xl will-change-transform"
       >
         <div className="aspect-[3/2] w-full overflow-hidden">
