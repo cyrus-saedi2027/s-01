@@ -15,8 +15,17 @@ export function Showcase() {
   return (
     <section
       id="archive"
-      className="relative z-10 rounded-t-[1.75rem] border-t border-hairStrong bg-ink shadow-[0_-40px_80px_-30px_rgba(0,0,0,0.95)]"
+      className="relative z-10 rounded-t-[1.75rem] border-t border-hairStrong bg-ink"
     >
+      {/* The shadow the sheet casts on what it covers. A painted gradient, not a
+          box-shadow: an 80px blur radius spanning the viewport has to be
+          re-rastered on every frame the sheet moves, and it moves the whole
+          way up. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-full h-24 bg-gradient-to-t from-black/85 to-transparent"
+      />
+
       {/* A hairline of light along the edge, so the seam reads at any scroll. */}
       <span
         aria-hidden="true"

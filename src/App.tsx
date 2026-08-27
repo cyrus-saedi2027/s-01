@@ -4,6 +4,7 @@ import { Preloader } from "./components/ui/Preloader";
 import { Cursor, type CursorVariant } from "./components/ui/Cursor";
 import { ScrollProgress } from "./components/ui/ScrollProgress";
 import { TopGlass } from "./components/ui/TopGlass";
+import { StackedLayer } from "./components/ui/StackedLayer";
 import { Header } from "./components/Header";
 import { MenuOverlay } from "./components/MenuOverlay";
 
@@ -81,15 +82,11 @@ export default function App() {
         <CaseStudies />
         <Solutions />
         <Process />
-        {/* The page stops being one column here. Testimonials pins to the top
-            of the viewport and the archive wall, next in flow but painted
-            above it, rides up over it as its own sheet. */}
-        <div className="relative">
-          <div className="sticky top-0 z-0">
-            <Testimonials />
-          </div>
+        {/* The page stops being one column here: the testimonials play out,
+            hold for a beat, and the archive wall comes over them as a sheet. */}
+        <StackedLayer beneath={<Testimonials />}>
           <Showcase />
-        </div>
+        </StackedLayer>
 
         <Awards />
         <CTA />

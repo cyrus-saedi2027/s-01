@@ -8,19 +8,22 @@ import { GLASS_BLUR, GLASS_SATURATE } from "@/lib/glass";
  * run out just below the menu caption, so the page seems to surface out of it
  * rather than to cross a line.
  *
- * That gradient is why it is three stacked layers instead of one blurred box
- * with a fade. Fading a single uniform blur leaves the sharp page showing
- * through its own blurred copy — a visible double image. Stacking instead lets
- * each layer blur what the layer beneath it already produced, so the blur
- * itself deepens toward the top. Blurs compose in quadrature, so the three
- * radii below meet GLASS_BLUR where they overlap:
- * sqrt(0.88² + 0.42² + 0.16²) ≈ 0.99.
+ * That gradient is why it is stacked layers instead of one blurred box with a
+ * fade. Fading a single uniform blur leaves the sharp page showing through its
+ * own blurred copy — a visible double image. Stacking instead lets each layer
+ * blur what the layer beneath it already produced, so the blur itself deepens
+ * toward the top.
+ *
+ * Two layers, not more. Each one is a full-width backdrop filter that the
+ * compositor re-rasters on every frame the page moves under it, and that cost
+ * lands hardest exactly where the page is busiest. Blurs compose in
+ * quadrature, so the pair still meets GLASS_BLUR where they overlap:
+ * sqrt(0.90² + 0.44²) ≈ 1.00.
  */
 const LAYERS = [
   // ratio of GLASS_BLUR, mask stop where the layer is still solid, stop where it is gone
-  { blur: 0.16, hold: "58%", gone: "100%" },
-  { blur: 0.42, hold: "34%", gone: "72%" },
-  { blur: 0.88, hold: "12%", gone: "42%" },
+  { blur: 0.44, hold: "46%", gone: "100%" },
+  { blur: 0.9, hold: "14%", gone: "56%" },
 ] as const;
 
 export function TopGlass({ hidden = false }: { hidden?: boolean }) {

@@ -17,8 +17,17 @@ export function useSmoothScroll(enabled = true) {
     let frame = 0;
     let running = false;
 
-    const maxScroll = () =>
-      document.documentElement.scrollHeight - window.innerHeight;
+    // Cached, not read per wheel event. `scrollHeight` is a forced synchronous
+    // layout, and during a scroll the tree is always dirty — so reading it on
+    // every tick made the page pay for a full layout per wheel event, which is
+    // felt most over a tall `position: sticky` subtree. A ResizeObserver on the
+    // root keeps the number honest as sections reveal and images settle.
+    let limit = document.documentElement.scrollHeight - window.innerHeight;
+    const measure = () => {
+      limit = document.documentElement.scrollHeight - window.innerHeight;
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(document.documentElement);
 
     const tick = () => {
       current += (target - current) * 0.11;
@@ -42,7 +51,7 @@ export function useSmoothScroll(enabled = true) {
       if (e.ctrlKey) return; // pinch-zoom
       if (document.body.dataset.locked === "true") return;
       e.preventDefault();
-      target = Math.max(0, Math.min(maxScroll(), target + e.deltaY));
+      target = Math.max(0, Math.min(limit, target + e.deltaY));
       start();
     };
 
@@ -55,13 +64,15 @@ export function useSmoothScroll(enabled = true) {
     };
 
     const onResize = () => {
-      target = Math.max(0, Math.min(maxScroll(), target));
+      measure();
+      target = Math.max(0, Math.min(limit, target));
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
     return () => {
+      ro.disconnect();
       cancelAnimationFrame(frame);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("scroll", onScroll);
