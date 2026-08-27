@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { HoverStaggerLabel } from "./ui/AnimatedText";
 import { MenuTrigger } from "./MenuTrigger";
 
 /**
  * Fixed bar: wordmark left, the menu control centred, contact right.
- * It hides on downward scroll and returns on upward, but stays put whenever
- * the menu panel is open — the trigger lives here and has to remain reachable.
+ * It stays pinned for the whole page — the menu trigger lives here, so it has
+ * to be reachable at any scroll position.
  */
 export function Header({
   onMenu,
@@ -18,25 +18,13 @@ export function Header({
   menuOpen: boolean;
   ready: boolean;
 }) {
-  const { scrollY } = useScroll();
-  const [hidden, setHidden] = useState(false);
   const [hoverContact, setHoverContact] = useState(false);
   const [hoverMark, setHoverMark] = useState(false);
-
-  useMotionValueEvent(scrollY, "change", (y) => {
-    const prev = scrollY.getPrevious() ?? 0;
-    if (menuOpen) return setHidden(false);
-    setHidden(y > prev && y > 260);
-  });
-
-  useEffect(() => {
-    if (menuOpen) setHidden(false);
-  }, [menuOpen]);
 
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
-      animate={{ y: hidden ? -110 : 0, opacity: ready ? 1 : 0 }}
+      animate={{ y: 0, opacity: ready ? 1 : 0 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: ready ? 0.15 : 0 }}
       className="pointer-events-none fixed inset-x-0 top-0 z-[80]"
     >

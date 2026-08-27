@@ -52,7 +52,7 @@ export function MarqueeLabel({
             {copies.map((_, i) => (
               <span
                 key={i}
-                className="flex shrink-0 items-center gap-2 whitespace-nowrap px-2 font-sans text-2xs font-semibold uppercase tracking-wider text-accent"
+                className="flex shrink-0 items-center gap-2 whitespace-nowrap px-1.5 font-sans text-2xs font-semibold uppercase tracking-wider text-accent"
               >
                 <span aria-hidden="true">—</span>
                 {text}

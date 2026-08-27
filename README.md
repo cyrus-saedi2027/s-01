@@ -22,7 +22,7 @@ src/
     useSmoothScroll.ts     lerp-based inertial wheel scrolling
     useMediaQuery.ts       pointer / breakpoint / reduced-motion queries
   components/
-    Header.tsx             fixed bar: wordmark, menu control, contact
+    Header.tsx             fixed bar, pinned for the whole page
     MenuTrigger.tsx        the slim bar that opens the menu
     MenuOverlay.tsx        drop-down navigation panel
     ui/
@@ -126,11 +126,10 @@ Tokens live in `tailwind.config.ts`.
 - **Scroll indicator** — right edge, vertically centred, hidden until you
   scroll past a threshold and fading out about a second after you stop.
 - **Case studies** — each cover starts pushed off the side of the screen and
-  turned away from the viewer, so it reads as a trapezoid. As the row rises it
-  slides in and the turn unwinds, landing square and fully on screen when the
-  row reaches the middle of the viewport. The turn is a real `rotateY` under
-  perspective, not a flat shear: a shear keeps both vertical edges the same
-  height, and the point is that the near edge is taller than the far one. The
+  tilted, its outer edge lifted. As the row rises it slides in and the tilt
+  unwinds, landing square and fully on screen when the row reaches the middle
+  of the viewport. The tilt is an in-plane rotation about the card's own
+  centre, so the raised edge swings down while the opposite edge swings up. The
   rows sit in an `overflow-x-clip` wrapper at viewport width — inside the shell
   the card would be cut at the page margin instead of the screen edge, and
   `hidden` would create a scroll container that breaks the sticky gallery.

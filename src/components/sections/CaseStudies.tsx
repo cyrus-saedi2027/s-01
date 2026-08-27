@@ -53,15 +53,13 @@ export function CaseStudies() {
 /**
  * One project row.
  *
- * The cover starts pushed off the side of the screen and turned away from the
- * viewer, so it reads as a trapezoid rather than a rectangle. As the row rises
- * it slides in and the turn unwinds, landing square and fully on screen at the
- * point the row reaches the middle of the viewport. The copy opposite runs off
- * the same scroll range so the two resolve together.
+ * The cover starts pushed off the side of the screen and tilted, its outer
+ * edge lifted. As the row rises it slides in and the tilt unwinds, landing
+ * square and fully on screen when the row reaches the middle of the viewport.
+ * The copy opposite runs off the same scroll range so the two resolve together.
  *
- * The turn is a real `rotateY` under perspective, not a flat shear — a shear
- * keeps both vertical edges the same height, and the whole point here is that
- * the near edge is taller than the far one.
+ * The tilt is an in-plane rotation about the card's own centre, so the outer
+ * edge swings down and the inner edge swings up as it settles.
  */
 function FeatureRow({
   project,
@@ -85,12 +83,12 @@ function FeatureRow({
   // row leans away from its own side.
   const dir = flipped ? -1 : 1;
 
-  // Negative rotateY brings the right edge toward the viewer, making it the
-  // taller one; mirrored for a cover on the left.
-  const rotateY = useTransform(p, [0, 1], [-19 * dir, 0]);
-  const rotateZ = useTransform(p, [0, 1], [-2.4 * dir, 0]);
-  const x = useTransform(p, [0, 1], [`${15 * dir}%`, "0%"]);
-  const scale = useTransform(p, [0, 1], [0.9, 1]);
+  // CSS rotation runs clockwise, so a negative angle lifts the right edge.
+  // Mirrored for a cover on the left. The pivot is the card's own centre, so
+  // the raised edge swings down while the opposite edge swings up.
+  const rotate = useTransform(p, [0, 1], [-12 * dir, 0]);
+  const x = useTransform(p, [0, 1], [`${18 * dir}%`, "0%"]);
+  const scale = useTransform(p, [0, 1], [0.88, 1]);
 
   const textX = useTransform(p, [0, 1], [26 * -dir, 0]);
   const textOpacity = useTransform(p, [0.15, 0.75], [0, 1]);
@@ -103,11 +101,10 @@ function FeatureRow({
           ? "lg:grid-cols-[1.7fr_1fr]"
           : "lg:grid-cols-[1fr_1.7fr] lg:[&>*:first-child]:order-2"
       }`}
-      style={{ perspective: 1400 }}
     >
       {/* Cover */}
       <motion.div
-        style={{ rotateY, rotateZ, x, scale, transformStyle: "preserve-3d" }}
+        style={{ rotate, x, scale, transformOrigin: "center center" }}
         className="relative overflow-hidden rounded-xl will-change-transform"
       >
         <div className="aspect-[3/2] w-full overflow-hidden">

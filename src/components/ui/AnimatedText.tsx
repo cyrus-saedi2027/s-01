@@ -122,7 +122,7 @@ export function HoverStaggerLabel({
             key={i}
             className="inline-block will-change-transform"
             animate={{ y: active ? "-115%" : "0%" }}
-            transition={{ duration: 0.42, ease: EASE, delay: i * 0.018 }}
+            transition={{ duration: 0.6, ease: EASE, delay: i * 0.026 }}
           >
             {ch === " " ? " " : ch}
           </motion.span>
@@ -136,7 +136,7 @@ export function HoverStaggerLabel({
             className="inline-block will-change-transform"
             initial={{ y: "115%" }}
             animate={{ y: active ? "0%" : "115%" }}
-            transition={{ duration: 0.42, ease: EASE, delay: i * 0.018 }}
+            transition={{ duration: 0.6, ease: EASE, delay: i * 0.026 }}
           >
             {ch === " " ? " " : ch}
           </motion.span>
