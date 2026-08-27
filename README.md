@@ -125,15 +125,18 @@ Tokens live in `tailwind.config.ts`.
   frame, which is what made an earlier version stutter.
 - **Scroll indicator** — right edge, vertically centred, hidden until you
   scroll past a threshold and fading out about a second after you stop.
-- **Case studies** — each cover starts tilted and unwinds to square as the row
-  reaches the middle of the viewport. The tilt is an in-plane rotation about
-  the card's own centre and nothing translates it, so the card turns in place
-  rather than travelling across the screen: the raised edge swings down while
-  the opposite edge swings up. A cover on the right starts with its left edge
-  raised, and one on the left starts with its right edge raised. The rows sit
-  in an `overflow-x-clip` wrapper at viewport width so a rotated corner cannot
-  widen the page; `clip` rather than `hidden`, since `hidden` creates a scroll
-  container and would break the sticky gallery below.
+- **Case studies** — each cover sweeps in along a shallow arc and lands square
+  as the row reaches the middle of the viewport. The arc comes from the pivot,
+  not from animating a path: `ARC_PIVOT` puts the transform origin well below
+  the card, so one rotation carries its centre along a circle of that radius —
+  the card curves into place and unwinds its tilt in a single motion, with no
+  translation involved. Pull the pivot toward `50% 50%` to flatten the curve
+  into a turn on the spot; push it further down to widen the sweep. A cover on
+  the right starts with its left edge raised, and one on the left starts with
+  its right edge raised. The rows sit in an `overflow-x-clip` wrapper at
+  viewport width so a swung corner cannot widen the page; `clip` rather than
+  `hidden`, since `hidden` creates a scroll container and would break the
+  sticky gallery below.
 - **Gallery wall** — deliberately taller than the window it is seen through, so
   even at rest it overflows its mask and the columns' parallax can never open a
   gap. The middle column runs against the outer two. Centring is done by the

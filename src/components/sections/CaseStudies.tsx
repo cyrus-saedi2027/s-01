@@ -8,6 +8,14 @@ import { gallery, projects, type Project } from "@/data/site";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 /**
+ * Where the covers pivot from. `50% 180%` sits a little over one card-height
+ * below the centre, which is the radius of the arc they travel. Pull it toward
+ * `50% 50%` to flatten the curve into a turn on the spot; push it further down
+ * to make the sweep wider.
+ */
+const ARC_PIVOT = "50% 180%";
+
+/**
  * The long-form counterpart to the works index: each project gets a full row,
  * then a gallery closes the section out.
  */
@@ -53,13 +61,15 @@ export function CaseStudies() {
 /**
  * One project row.
  *
- * The cover starts pushed off the side of the screen and tilted, its outer
- * edge lifted. As the row rises it slides in and the tilt unwinds, landing
- * square and fully on screen when the row reaches the middle of the viewport.
- * The copy opposite runs off the same scroll range so the two resolve together.
+ * The cover sweeps in along a shallow arc and lands square as the row reaches
+ * the middle of the viewport, with the copy opposite running off the same
+ * scroll range so the two resolve together.
  *
- * The tilt is an in-plane rotation about the card's own centre, so the outer
- * edge swings down and the inner edge swings up as it settles.
+ * The arc comes from the pivot rather than from animating a path: putting the
+ * transform origin well below the card means a single rotation carries its
+ * centre along a circle of that radius, so the card curves into place and
+ * unwinds its tilt in one motion. Nothing translates it — the travel is the
+ * rotation. A nearer pivot flattens the curve, a further one deepens it.
  */
 function FeatureRow({
   project,
@@ -87,9 +97,9 @@ function FeatureRow({
   // A cover on the right therefore starts with its left edge raised, and one
   // on the left starts with its right edge raised.
   //
-  // The pivot is the card's own centre and nothing translates it, so the card
-  // turns in place: the raised edge swings down while the opposite edge swings
-  // up, and the card never travels across the screen.
+  // With the pivot below the card, that same rotation also swings the card out
+  // along the arc — each cover enters from its own side of the layout and
+  // curves back in.
   const rotate = useTransform(p, [0, 1], [12 * dir, 0]);
   const scale = useTransform(p, [0, 1], [0.94, 1]);
 
@@ -107,7 +117,7 @@ function FeatureRow({
     >
       {/* Cover */}
       <motion.div
-        style={{ rotate, scale, transformOrigin: "center center" }}
+        style={{ rotate, scale, transformOrigin: ARC_PIVOT }}
         className="relative overflow-hidden rounded-xl will-change-transform"
       >
         <div className="aspect-[3/2] w-full overflow-hidden">
