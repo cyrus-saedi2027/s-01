@@ -64,7 +64,7 @@ export function CTA() {
         </Reveal>
 
         <Reveal delay={0.25} className="mt-12 flex flex-wrap items-center justify-center gap-4">
-          <MagneticButton label="Book a call" href={`mailto:${identity.email}`} variant="solid" />
+          <MagneticButton label="Book a call" href="#booking" variant="solid" />
           <MagneticButton
             label={identity.email}
             href={`mailto:${identity.email}`}

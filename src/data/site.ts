@@ -213,29 +213,58 @@ export const showcase = {
   ],
 };
 
+/**
+ * The booking panel. `availability` is wall-clock time in the host's own zone —
+ * visitors see it converted to theirs, daylight saving included.
+ */
+export const booking = {
+  title: "Intro call",
+  blurb: "Tell me what you are building and where it is stuck. Thirty minutes is usually enough to work out whether I am the right person for it.",
+  place: "Google Meet",
+  durations: [15, 30, 60],
+  defaultDuration: 30,
+  availability: {
+    days: [1, 2, 3, 4, 5],
+    start: 9,
+    end: 17,
+    hostTimeZone: "Europe/Amsterdam",
+    horizon: 60,
+  },
+} as const;
+
+/** The plate that stands beside the recognition ledger. */
+export const accolade = {
+  src: "/art/accolade.svg",
+  alt: "An ember plume rising through darkness under a bright crescent of light",
+};
+
 export const awards = [
   {
     org: "Site of the Day",
     lines: [
-      "9× Featured build",
-      "4× Developer pick",
-      "2× Site of the Month",
-      "14× Honourable mention",
+      "1× Studio of the year nominee",
+      "3× E-commerce of the year nominee",
+      "2× Site of the month",
+      "12× Site of the day",
+      "11× Developer award",
+      "20× Honourable mention",
     ],
   },
   {
     org: "Interaction Annual",
-    lines: ["6× Motion feature", "1× Grand jury shortlist"],
+    lines: ["12× Motion feature", "1× Grand jury shortlist"],
   },
   {
     org: "Type & Layout Review",
     lines: [
-      "3× Editorial craft",
-      "5× Interface of the Month",
-      "1× Studio of the Year nominee",
+      "2× Editorial craft",
+      "3× Interface of the month",
+      "7× Interface of the day",
+      "1× Studio of the year nominee",
+      "5× Innovation",
     ],
   },
-  { org: "Frontend Guild", lines: ["2× Performance citation"] },
+  { org: "Frontend Guild", lines: ["1× Performance citation"] },
 ];
 
 export const navLinks = [

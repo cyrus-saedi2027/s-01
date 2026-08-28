@@ -18,6 +18,7 @@ import { Testimonials } from "./components/sections/Testimonials";
 import { Showcase } from "./components/sections/Showcase";
 import { Awards } from "./components/sections/Awards";
 import { CTA } from "./components/sections/CTA";
+import { Booking } from "./components/sections/Booking";
 import { Footer } from "./components/sections/Footer";
 
 import { useSmoothScroll } from "./hooks/useSmoothScroll";
@@ -90,6 +91,7 @@ export default function App() {
 
         <Awards />
         <CTA />
+        <Booking />
       </main>
 
       <Footer />
