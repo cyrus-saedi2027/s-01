@@ -15,7 +15,10 @@ export function Showcase() {
   return (
     <section
       id="archive"
-      className="relative z-10 rounded-t-[1.75rem] border-t border-hairStrong bg-ink"
+      /* will-change: the sheet gets its own compositing layer. It and the
+         pinned section below move relative to each other, so without one the
+         browser re-rasters their whole overlap — the viewport — every frame. */
+      className="relative z-10 rounded-t-[1.75rem] border-t border-hairStrong bg-ink [will-change:transform]"
     >
       {/* The shadow the sheet casts on what it covers. A painted gradient, not a
           box-shadow: an 80px blur radius spanning the viewport has to be
@@ -91,7 +94,9 @@ function Plate({
           stiffness={80}
           damping={22}
         />
-        <span className="pointer-events-none absolute left-4 top-4 font-sans text-2xs font-semibold tracking-wider text-paper/70 mix-blend-difference">
+        {/* Plain type over a shadow rather than a blend mode: blending makes the
+            compositor read back what is behind the label on every frame. */}
+        <span className="pointer-events-none absolute left-4 top-4 font-sans text-2xs font-semibold tracking-wider text-white/80 [text-shadow:0_1px_6px_rgba(0,0,0,0.7)]">
           {n}
         </span>
       </div>

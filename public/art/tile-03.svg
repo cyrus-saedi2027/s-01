@@ -11,14 +11,7 @@
       <stop offset="0.55" stop-color="#fd321c"/>
       <stop offset="1" stop-color="#ff8a00"/>
     </linearGradient>
-    <filter id="softtile03svg"><feGaussianBlur stdDeviation="42"/></filter>
-    <filter id="graintile03svg" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
-      <feColorMatrix type="saturate" values="0"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.13"/></feComponentTransfer>
-    </filter>
   </defs>
   <rect width="900" height="620" fill="#0a0a0b"/>
-<rect width="900" height="620" fill="#0d0d10"/><ellipse cx="242.4" cy="447.3" rx="450" ry="248" fill="url(#bloomtile03svg)" opacity="0.72" filter="url(#softtile03svg)"/><text x="357.5" y="573.9" font-family="Poppins, Inter, sans-serif" font-weight="700" font-size="1185.1" fill="#fff" opacity="0.9" letter-spacing="-0.06em">N</text><rect width="900" height="620" fill="url(#sweeptile03svg)" opacity="0.16" style="mix-blend-mode:overlay"/>
-  <rect width="900" height="620" filter="url(#graintile03svg)" opacity="0.5"/>
+<rect width="900" height="620" fill="#0d0d10"/><ellipse cx="242.4" cy="447.3" rx="450" ry="248" fill="url(#bloomtile03svg)" opacity="0.72"/><text x="357.5" y="573.9" font-family="Poppins, Inter, sans-serif" font-weight="700" font-size="1185.1" fill="#fff" opacity="0.9" letter-spacing="-0.06em">N</text><rect width="900" height="620" fill="url(#sweeptile03svg)" opacity="0.16" style="mix-blend-mode:overlay"/>
 </svg>

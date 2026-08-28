@@ -81,10 +81,13 @@
   }
 
   /* Fine grain laid over the whole page — keeps the flat black from banding. */
+  /* The overhang only has to cover the drift below, which is ~3.4% of the
+     viewport — at -50% this was a 2x2-viewport layer, four times the pixels
+     for the same effect, re-composited several times a second. */
   .grain::after {
     content: "";
     position: fixed;
-    inset: -50%;
+    inset: -6%;
     z-index: 60;
     pointer-events: none;
     opacity: 0.05;

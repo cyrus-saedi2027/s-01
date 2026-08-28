@@ -7,6 +7,12 @@
  * across runs and there are no bitmap dependencies. All of it stays inside the
  * site palette — near-black grounds lit by the vermilion accent.
  *
+ * Nothing here uses an SVG filter, deliberately. A filter is re-run every time
+ * the browser rasters a tile the image touches, not once when it loads, so a
+ * grid of these was paying for full-area fractal noise and a 42px blur on
+ * every frame it scrolled. The bloom is a radial gradient that already fades
+ * to nothing at its edge, and the page lays its own grain over everything.
+ *
  * Usage: node scripts/generate-artwork.mjs
  */
 import fs from "node:fs";
@@ -39,12 +45,6 @@ const defs = (id) => `
       <stop offset="0.55" stop-color="${RED}"/>
       <stop offset="1" stop-color="${EMBER}"/>
     </linearGradient>
-    <filter id="soft${id}"><feGaussianBlur stdDeviation="42"/></filter>
-    <filter id="grain${id}" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
-      <feColorMatrix type="saturate" values="0"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.13"/></feComponentTransfer>
-    </filter>
   </defs>`;
 
 const frame = (id, w, h, inner) =>
@@ -52,7 +52,6 @@ const frame = (id, w, h, inner) =>
 ${defs(id)}
   <rect width="${w}" height="${h}" fill="#0a0a0b"/>
 ${inner}
-  <rect width="${w}" height="${h}" filter="url(#grain${id})" opacity="0.5"/>
 </svg>`;
 
 /* ------------------------------------------------------------------ motifs
@@ -66,7 +65,7 @@ function mockup(id, w, h, seed) {
   const r = rng(seed);
   const pad = w * 0.05;
   let s = `<rect width="${w}" height="${h}" fill="#111114"/>`;
-  s += `<ellipse cx="${n(w * (0.2 + r() * 0.6))}" cy="${n(h * (0.2 + r() * 0.5))}" rx="${n(w * 0.55)}" ry="${n(h * 0.45)}" fill="url(#bloom${id})" opacity="0.5" filter="url(#soft${id})"/>`;
+  s += `<ellipse cx="${n(w * (0.2 + r() * 0.6))}" cy="${n(h * (0.2 + r() * 0.5))}" rx="${n(w * 0.55)}" ry="${n(h * 0.45)}" fill="url(#bloom${id})" opacity="0.5"/>`;
   // chrome
   s += `<rect x="${n(pad)}" y="${n(pad)}" width="${n(w - pad * 2)}" height="${n(h * 0.055)}" rx="${n(h * 0.012)}" fill="#fff" opacity="0.07"/>`;
   for (let i = 0; i < 3; i++) {
@@ -103,7 +102,7 @@ function specimen(id, w, h, seed) {
   const glyphs = "AZMRSNKV";
   const ch = glyphs[Math.floor(r() * glyphs.length)];
   let s = `<rect width="${w}" height="${h}" fill="#0d0d10"/>`;
-  s += `<ellipse cx="${n(w * (0.15 + r() * 0.7))}" cy="${n(h * (0.55 + r() * 0.3))}" rx="${n(w * 0.5)}" ry="${n(h * 0.4)}" fill="url(#bloom${id})" opacity="0.72" filter="url(#soft${id})"/>`;
+  s += `<ellipse cx="${n(w * (0.15 + r() * 0.7))}" cy="${n(h * (0.55 + r() * 0.3))}" rx="${n(w * 0.5)}" ry="${n(h * 0.4)}" fill="url(#bloom${id})" opacity="0.72"/>`;
   const size = Math.max(w, h) * (1.05 + r() * 0.3);
   s += `<text x="${n(w * (0.1 + r() * 0.3))}" y="${n(h * (0.86 + r() * 0.08))}" font-family="Poppins, Inter, sans-serif" font-weight="700" font-size="${n(size)}" fill="#fff" opacity="0.9" letter-spacing="-0.06em">${ch}</text>`;
   s += `<rect width="${w}" height="${h}" fill="url(#sweep${id})" opacity="0.16" style="mix-blend-mode:overlay"/>`;
@@ -116,7 +115,7 @@ function mesh(id, w, h, seed) {
   const hy = h * (0.42 + r() * 0.16);
   const vx = w * (0.3 + r() * 0.4);
   let s = `<rect width="${w}" height="${n(hy)}" fill="#0c0c10"/>`;
-  s += `<ellipse cx="${n(vx)}" cy="${n(hy)}" rx="${n(w * 0.45)}" ry="${n(h * 0.2)}" fill="url(#bloom${id})" opacity="0.95" filter="url(#soft${id})"/>`;
+  s += `<ellipse cx="${n(vx)}" cy="${n(hy)}" rx="${n(w * 0.45)}" ry="${n(h * 0.2)}" fill="url(#bloom${id})" opacity="0.95"/>`;
   s += `<rect y="${n(hy)}" width="${w}" height="${n(h - hy)}" fill="#08080a"/>`;
   for (let i = -12; i <= 12; i++) {
     s += `<line x1="${n(vx)}" y1="${n(hy)}" x2="${n(vx + i * w * 0.16)}" y2="${h}" stroke="#fff" stroke-opacity="${i === 0 ? 0.3 : 0.12}" stroke-width="1"/>`;
@@ -133,7 +132,7 @@ function mesh(id, w, h, seed) {
 function shapes(id, w, h, seed) {
   const r = rng(seed);
   let s = `<rect width="${w}" height="${h}" fill="#0b0b0e"/>`;
-  s += `<ellipse cx="${n(w * (0.25 + r() * 0.5))}" cy="${n(h * (0.3 + r() * 0.4))}" rx="${n(w * 0.4)}" ry="${n(h * 0.35)}" fill="url(#bloom${id})" opacity="0.6" filter="url(#soft${id})"/>`;
+  s += `<ellipse cx="${n(w * (0.25 + r() * 0.5))}" cy="${n(h * (0.3 + r() * 0.4))}" rx="${n(w * 0.4)}" ry="${n(h * 0.35)}" fill="url(#bloom${id})" opacity="0.6"/>`;
   const kinds = ["circle", "square", "tri"];
   for (let i = 0; i < 6; i++) {
     const kind = kinds[Math.floor(r() * 3)];
@@ -157,7 +156,7 @@ function shapes(id, w, h, seed) {
 function bars(id, w, h, seed) {
   const r = rng(seed);
   let s = `<rect width="${w}" height="${h}" fill="#0a0a0c"/>`;
-  s += `<ellipse cx="${n(w * (0.2 + r() * 0.6))}" cy="${n(h * (0.4 + r() * 0.3))}" rx="${n(w * 0.42)}" ry="${n(h * 0.4)}" fill="url(#bloom${id})" opacity="0.62" filter="url(#soft${id})"/>`;
+  s += `<ellipse cx="${n(w * (0.2 + r() * 0.6))}" cy="${n(h * (0.4 + r() * 0.3))}" rx="${n(w * 0.42)}" ry="${n(h * 0.4)}" fill="url(#bloom${id})" opacity="0.62"/>`;
   const count = 26 + Math.floor(r() * 16);
   for (let i = 0; i < count; i++) {
     const x = (i / count) * w;
@@ -173,7 +172,7 @@ function bars(id, w, h, seed) {
 function contours(id, w, h, seed) {
   const r = rng(seed);
   let s = `<rect width="${w}" height="${h}" fill="#0a0a0c"/>`;
-  s += `<circle cx="${n(w * (0.15 + r() * 0.7))}" cy="${n(h * (0.25 + r() * 0.5))}" r="${n(w * 0.36)}" fill="url(#bloom${id})" opacity="0.8" filter="url(#soft${id})"/>`;
+  s += `<circle cx="${n(w * (0.15 + r() * 0.7))}" cy="${n(h * (0.25 + r() * 0.5))}" r="${n(w * 0.36)}" fill="url(#bloom${id})" opacity="0.8"/>`;
   const lines = 26 + Math.floor(r() * 12);
   for (let i = 0; i < lines; i++) {
     const base = (i / lines) * h;

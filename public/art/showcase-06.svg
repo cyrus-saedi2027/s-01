@@ -11,14 +11,7 @@
       <stop offset="0.55" stop-color="#fd321c"/>
       <stop offset="1" stop-color="#ff8a00"/>
     </linearGradient>
-    <filter id="softshowcase06svg"><feGaussianBlur stdDeviation="42"/></filter>
-    <filter id="grainshowcase06svg" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
-      <feColorMatrix type="saturate" values="0"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.13"/></feComponentTransfer>
-    </filter>
   </defs>
   <rect width="900" height="675" fill="#0a0a0b"/>
-<rect width="900" height="675" fill="#0b0b0e"/><ellipse cx="309.9" cy="268.4" rx="360" ry="236.2" fill="url(#bloomshowcase06svg)" opacity="0.6" filter="url(#softshowcase06svg)"/><rect x="31" y="297" width="177.2" height="177.2" rx="14.2" fill="#fd321c" opacity="0.17" transform="rotate(18.7 119.6 385.6)"/><circle cx="681.3" cy="89.5" r="157.5" fill="#fff" opacity="0.31"/><circle cx="558.9" cy="200.3" r="187.8" fill="#fff" opacity="0.11"/><rect x="39.1" y="149.8" width="259.8" height="259.8" rx="20.8" fill="#fff" opacity="0.15" transform="rotate(31.1 169 279.7)"/><rect x="224.8" y="446.4" width="280.5" height="280.5" rx="22.4" fill="#fff" opacity="0.22" transform="rotate(15.8 365.1 586.6)"/><path d="M 113.6 346 L 257.7 634.2 L -30.5 634.2 Z" fill="#fd321c" opacity="0.31"/>
-  <rect width="900" height="675" filter="url(#grainshowcase06svg)" opacity="0.5"/>
+<rect width="900" height="675" fill="#0b0b0e"/><ellipse cx="309.9" cy="268.4" rx="360" ry="236.2" fill="url(#bloomshowcase06svg)" opacity="0.6"/><rect x="31" y="297" width="177.2" height="177.2" rx="14.2" fill="#fd321c" opacity="0.17" transform="rotate(18.7 119.6 385.6)"/><circle cx="681.3" cy="89.5" r="157.5" fill="#fff" opacity="0.31"/><circle cx="558.9" cy="200.3" r="187.8" fill="#fff" opacity="0.11"/><rect x="39.1" y="149.8" width="259.8" height="259.8" rx="20.8" fill="#fff" opacity="0.15" transform="rotate(31.1 169 279.7)"/><rect x="224.8" y="446.4" width="280.5" height="280.5" rx="22.4" fill="#fff" opacity="0.22" transform="rotate(15.8 365.1 586.6)"/><path d="M 113.6 346 L 257.7 634.2 L -30.5 634.2 Z" fill="#fd321c" opacity="0.31"/>
 </svg>
