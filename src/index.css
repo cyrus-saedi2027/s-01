@@ -56,10 +56,17 @@
     background: rgba(255, 255, 255, 0.32);
   }
 
-  /* Lock the page while the preloader runs. */
+  /* Lock the page while the preloader or a dialog is up. */
   body[data-locked="true"] {
     overflow: hidden;
     height: 100vh;
+  }
+
+  /* A dialog's glass is a full-viewport backdrop filter, and the grain drifts
+     several times a second — which invalidates that backdrop and forces the
+     whole viewport to be re-blurred on every step. Hold it still meanwhile. */
+  body[data-locked="true"] .grain::after {
+    animation: none;
   }
 }
 

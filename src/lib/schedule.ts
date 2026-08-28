@@ -92,23 +92,39 @@ export function monthGrid(year: number, month: number, weekStart = 0): CivilDate
 }
 
 export type Availability = {
-  /** Working weekdays in the host's zone, 0 = Sunday. */
+  /** Open weekdays, 0 = Sunday. */
   days: readonly number[];
-  /** Wall-clock hours in the host's zone, end exclusive. */
+  /**
+   * Wall-clock hours, end exclusive, read in whichever zone the visitor has
+   * selected — so the day always runs from `start` to `end` on their own clock
+   * rather than sliding by the offset between them and the studio.
+   */
   start: number;
   end: number;
-  hostTimeZone: string;
   /** How far ahead bookings are open, in days. */
   horizon: number;
 };
 
-/** Stable pseudo-random in [0, 1) from a date and index — same day, same gaps. */
+/**
+ * Stable pseudo-random in [0, 1) from a date and index — same day, same gaps.
+ *
+ * Two things this has to get right, both of which it got wrong before:
+ * every multiply goes through `Math.imul`, because a plain
+ * `key * 2654435761` is a double and with a key around 2e7 the product passes
+ * 2^53, losing exactly the low bits the mixing works on; and the result is
+ * coerced back to unsigned before the divide, because `^` yields a signed
+ * int32. Either one alone pushed three quarters of the day into "booked".
+ */
 function jitter(key: number, i: number): number {
-  let h = (key * 2654435761 + i * 40503) >>> 0;
+  let h = (Math.imul(key, 2654435761) ^ Math.imul(i + 1, 40503)) >>> 0;
   h ^= h >>> 15;
   h = Math.imul(h, 2246822507) >>> 0;
   h ^= h >>> 13;
-  return h / 4294967296;
+  h = Math.imul(h, 3266489909) >>> 0;
+  h ^= h >>> 16;
+  // `^` yields a *signed* int32. Without this the top bit reads as negative and
+  // every such value falls under any threshold — half the range, silently.
+  return (h >>> 0) / 4294967296;
 }
 
 /**
@@ -122,9 +138,10 @@ export function slotsOn(
   date: CivilDate,
   durationMinutes: number,
   avail: Availability,
-  now: number
+  now: number,
+  timeZone: string
 ): number[] {
-  const today = civilDateIn(now, avail.hostTimeZone);
+  const today = civilDateIn(now, timeZone);
   if (dateKey(date) < dateKey(today)) return [];
 
   const horizon = new Date(Date.UTC(today.y, today.m, today.d + avail.horizon));
@@ -134,17 +151,22 @@ export function slotsOn(
 
   const key = dateKey(date);
   const step = durationMinutes;
+  const from = avail.start * 60;
   const out: number[] = [];
 
-  for (let mins = avail.start * 60; mins + step <= avail.end * 60; mins += step) {
-    const i = out.length + Math.floor(mins / step);
-    if (jitter(key, i) < 0.28) continue; // already booked
-    const at = zonedTimeToInstant(date, Math.floor(mins / 60), mins % 60, avail.hostTimeZone);
+  for (let mins = from; mins + step <= avail.end * 60; mins += step) {
+    // Index by position in the day, so a slot's fate does not depend on how
+    // many before it happened to survive.
+    if (jitter(key, (mins - from) / step) < TAKEN) continue;
+    const at = zonedTimeToInstant(date, Math.floor(mins / 60), mins % 60, timeZone);
     if (at <= now) continue; // today's slots that have passed
     out.push(at);
   }
   return out;
 }
+
+/** Share of the day already booked, so a month reads like a diary. */
+const TAKEN = 0.24;
 
 /** Formats an instant as a time of day in the viewer's zone. */
 export function formatTime(at: number, timeZone: string, hour12: boolean): string {

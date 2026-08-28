@@ -43,9 +43,9 @@ export function Awards() {
           </Reveal>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] lg:gap-12">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <div className="aspect-[3/4] overflow-hidden rounded-xl border border-hair bg-surface">
+            <div className="aspect-[8/9] overflow-hidden rounded-xl border border-hair bg-surface">
               <motion.img
                 src={accolade.src}
                 alt={accolade.alt}
@@ -56,7 +56,7 @@ export function Awards() {
             </div>
           </div>
 
-          <RevealGroup className="flex flex-col" stagger={0.09}>
+          <RevealGroup className="flex flex-col lg:self-center" stagger={0.09}>
             {awards.map((a) => (
               <RevealItem
                 key={a.org}

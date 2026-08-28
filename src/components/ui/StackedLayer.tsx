@@ -19,7 +19,9 @@ const MAX_CROP = 80;
  * a box while you scroll *toward* it and lets go once it arrives.)
  *
  * `hold` is the beat after that, where the finished section sits still before
- * the sheet reaches it.
+ * the sheet reaches it. It wants to be generous: at less than a viewport the
+ * section is technically shown and still goes by too fast to read, which is
+ * indistinguishable from never having been shown at all.
  *
  * Once the sheet covers the viewport the section underneath is hidden
  * outright. It stays in the layout, pinned, with its marquees running, and
@@ -29,7 +31,7 @@ const MAX_CROP = 80;
 export function StackedLayer({
   beneath,
   children,
-  hold = "h-[26vh] md:h-[42vh]",
+  hold = "h-[60vh] md:h-[90vh]",
 }: {
   beneath: ReactNode;
   children: ReactNode;

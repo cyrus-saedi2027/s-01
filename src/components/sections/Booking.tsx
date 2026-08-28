@@ -32,7 +32,7 @@ import {
 const EASE = [0.22, 1, 0.36, 1] as const;
 /** Slow away, quick through the middle, slow in — the sweep between steps. */
 const SWEEP_EASE = [0.65, 0, 0.35, 1] as const;
-const SWEEP = 0.78;
+const SWEEP = 1.8;
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 type Step = "pick" | "details" | "done";
@@ -82,19 +82,20 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto p-4 md:p-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.35, ease: EASE }}
-        >
+        <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto p-4 md:p-8">
           {/* The glass. A button so a click anywhere off the card dismisses. */}
-          <button
+          {/* The glass fades on its own and briskly: it is a full-viewport
+              backdrop filter, and every frame of a long fade re-blurs the whole
+              page behind it. */}
+          <motion.button
             type="button"
             aria-label="Close booking"
             onClick={onClose}
-            className="fixed inset-0 cursor-default bg-[#0a0a0c]/55"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="fixed inset-0 cursor-default bg-[#0a0a0c]/30"
             style={{
               backdropFilter: `blur(${GLASS_BLUR}px) saturate(${GLASS_SATURATE})`,
               WebkitBackdropFilter: `blur(${GLASS_BLUR}px) saturate(${GLASS_SATURATE})`,
@@ -109,17 +110,20 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
                 opacity: GLASS_GRAIN_OPACITY,
               }}
             />
-          </button>
+          </motion.button>
 
           <motion.div
             ref={card}
             role="dialog"
             aria-modal="true"
             aria-label={`${booking.title} — pick a time`}
-            initial={{ opacity: 0, y: 28, scale: 0.98 }}
+            initial={{ opacity: 0, y: 34, scale: 0.965 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.99 }}
-            transition={{ duration: 0.5, ease: EASE }}
+            // Closing is its own, quicker motion: the opening delay lets the
+            // glass land first, but on the way out it just reads as lag.
+            exit={{ opacity: 0, y: 14, scale: 0.985, transition: { duration: 0.28, ease: "easeIn" } }}
+            transition={{ duration: 0.62, ease: EASE, delay: 0.06 }}
+            style={{ willChange: "transform, opacity" }}
             className="relative z-10 my-auto w-full max-w-6xl overflow-hidden rounded-2xl border border-hairStrong bg-surface shadow-[0_40px_120px_-30px_rgba(0,0,0,0.9)]"
           >
             <button
@@ -135,7 +139,7 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
 
             <BookingFlow onClose={onClose} />
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );
@@ -258,9 +262,9 @@ function BookingFlow({ onClose }: { onClose: () => void }) {
 
   const slotsByDay = useMemo(() => {
     const map = new Map<number, number[]>();
-    for (const d of grid) map.set(dateKey(d), slotsOn(d, duration, avail, now));
+    for (const d of grid) map.set(dateKey(d), slotsOn(d, duration, avail, now, zone));
     return map;
-  }, [grid, duration, avail, now]);
+  }, [grid, duration, avail, now, zone]);
 
   const daySlots = useMemo(
     () => (selected ? slotsByDay.get(dateKey(selected)) ?? [] : []),
@@ -681,9 +685,9 @@ function Calendar({
                   isSelected
                     ? "bg-paper font-semibold text-ink"
                     : open
-                      ? "bg-surfaceUp text-paper hover:bg-hairStrong"
-                      : "text-dimmer",
-                  !inMonth && !isSelected && "opacity-45"
+                      ? "bg-surfaceUp font-medium text-paper ring-1 ring-inset ring-white/10 hover:bg-hairStrong hover:ring-white/30"
+                      : "text-white/20",
+                  !inMonth && !isSelected && "opacity-50"
                 )}
               >
                 {d.d}
@@ -692,7 +696,7 @@ function Calendar({
                     aria-hidden="true"
                     className={cn(
                       "absolute inset-x-0 bottom-1 mx-auto h-1 w-1 rounded-full",
-                      open <= 3 ? "bg-accent" : "bg-paper/45"
+                      open <= 3 ? "bg-accent" : "bg-paper/70"
                     )}
                   />
                 )}
@@ -746,9 +750,7 @@ function SlotList({
       <div className="mb-4 flex items-center justify-between gap-3 pr-10">
         <h3 className="whitespace-nowrap font-sans text-sm font-medium">
           {selected ? (
-            <>
-              {WEEKDAYS[weekdayOf(selected)]} <span className="text-dim">{ordinal(selected.d)}</span>
-            </>
+            WEEKDAYS[weekdayOf(selected)]
           ) : (
             <span className="text-dim">Choose a day</span>
           )}
@@ -1361,11 +1363,6 @@ const longDateOf = (d: CivilDate) =>
   new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(
     new Date(Date.UTC(d.y, d.m, d.d))
   );
-
-const ordinal = (n: number) => {
-  const s = ["th", "st", "nd", "rd"][((n % 100) - 20) % 10] ?? ["th", "st", "nd", "rd"][n % 100] ?? "th";
-  return `${n}${s}`;
-};
 
 /** Google Calendar wants UTC basic-format stamps. */
 const stamp = (at: number) => new Date(at).toISOString().replace(/[-:]|\.\d{3}/g, "");

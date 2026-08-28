@@ -214,8 +214,8 @@ export const showcase = {
 };
 
 /**
- * The booking panel. `availability` is wall-clock time in the host's own zone —
- * visitors see it converted to theirs, daylight saving included.
+ * The booking panel. `availability` is wall-clock time on the visitor's own
+ * clock, so the day always runs 08:00–21:00 whichever zone they are reading in.
  */
 export const booking = {
   title: "Intro call",
@@ -227,7 +227,6 @@ export const booking = {
     days: [0, 1, 2, 3, 4, 5, 6],
     start: 8,
     end: 21,
-    hostTimeZone: "Europe/Amsterdam",
     horizon: 90,
   },
 } as const;
