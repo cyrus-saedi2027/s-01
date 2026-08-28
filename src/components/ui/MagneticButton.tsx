@@ -22,7 +22,7 @@ export function MagneticButton({
   variant?: "solid" | "outline" | "accent";
   strength?: number;
   icon?: ReactNode;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const [hover, setHover] = useState(false);

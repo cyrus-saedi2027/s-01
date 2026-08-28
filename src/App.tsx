@@ -18,7 +18,7 @@ import { Testimonials } from "./components/sections/Testimonials";
 import { Showcase } from "./components/sections/Showcase";
 import { Awards } from "./components/sections/Awards";
 import { CTA } from "./components/sections/CTA";
-import { Booking } from "./components/sections/Booking";
+import { BookingDialog } from "./components/sections/Booking";
 import { Footer } from "./components/sections/Footer";
 
 import { useSmoothScroll } from "./hooks/useSmoothScroll";
@@ -33,6 +33,7 @@ const CURSOR_VARIANT: CursorVariant = "ring";
 export default function App() {
   const [ready, setReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   // Inertial wheel scrolling, enabled once the curtain has lifted. It stays on
   // while the menu is up: the panel is fixed, so the page reads normally as it
@@ -75,6 +76,7 @@ export default function App() {
         onMenu={() => setMenuOpen((v) => !v)}
       />
       <MenuOverlay open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <BookingDialog open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
       <main>
         <Hero ready={ready} />
@@ -90,8 +92,7 @@ export default function App() {
         </StackedLayer>
 
         <Awards />
-        <CTA />
-        <Booking />
+        <CTA onBook={() => setBookingOpen(true)} />
       </main>
 
       <Footer />

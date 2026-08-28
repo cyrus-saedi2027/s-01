@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
+/** Most the pin will ever cut from the top of the section beneath, in px. */
+const MAX_CROP = 80;
+
 /**
  * Two sections stacked on top of each other instead of end to end: `beneath`
  * plays out in full, holds where it finishes, and `children` then rides up
@@ -41,8 +44,11 @@ export function StackedLayer({
   useEffect(() => {
     const el = pin.current;
     if (!el) return;
+    // Anchoring at `viewport - height` shows the section whole, but on a screen
+    // shorter than the section that crops the top — and the top is where the
+    // heading is. Cap the crop so the section always keeps its own title.
     const measure = () =>
-      setTop(Math.min(0, window.innerHeight - el.offsetHeight));
+      setTop(Math.max(Math.min(0, window.innerHeight - el.offsetHeight), -MAX_CROP));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);

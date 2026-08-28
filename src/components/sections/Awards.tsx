@@ -24,15 +24,15 @@ export function Awards() {
   const scale = useTransform(scrollYProgress, [0, 1], [START_SCALE, 1]);
 
   return (
-    <section id="awards" ref={ref} className="relative py-24 md:py-36">
+    <section id="awards" ref={ref} className="relative py-16 md:py-20">
       <div className="shell">
-        <Reveal className="mb-8">
+        <Reveal className="mb-5">
           <MarqueeLabel text="Recognition" />
         </Reveal>
 
         {/* Masthead. The year range sits on the last line's baseline. */}
-        <div className="mb-16 flex flex-col gap-4 md:mb-24 md:flex-row md:items-end md:justify-between">
-          <h2 className="text-[clamp(3.25rem,11vw,11rem)] font-semibold uppercase leading-[0.86] tracking-[-0.03em]">
+        <div className="mb-10 flex flex-col gap-3 md:mb-12 md:flex-row md:items-end md:justify-between">
+          <h2 className="text-[clamp(2.75rem,7vw,7.5rem)] font-medium uppercase leading-[0.88] tracking-tighter">
             <MaskLine>Awards &amp;</MaskLine>
             <MaskLine delay={0.08}>Honors</MaskLine>
           </h2>
@@ -43,9 +43,9 @@ export function Awards() {
           </Reveal>
         </div>
 
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-16">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] lg:gap-12">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <div className="aspect-[2/3] overflow-hidden rounded-xl border border-hair bg-surface">
+            <div className="aspect-[3/4] overflow-hidden rounded-xl border border-hair bg-surface">
               <motion.img
                 src={accolade.src}
                 alt={accolade.alt}
@@ -60,16 +60,16 @@ export function Awards() {
             {awards.map((a) => (
               <RevealItem
                 key={a.org}
-                className="grid grid-cols-1 gap-4 border-t border-hair py-8 first:border-t-0 first:pt-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-10 md:py-11"
+                className="grid grid-cols-1 gap-2 border-t border-hair py-5 first:border-t-0 first:pt-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-8 md:py-6"
               >
-                <h3 className="text-[clamp(1.5rem,3.2vw,2.5rem)] font-semibold uppercase leading-none tracking-tight text-accent">
+                <h3 className="text-[clamp(1.15rem,2.1vw,1.6rem)] font-semibold uppercase leading-none tracking-tight text-accent">
                   {a.org}
                 </h3>
-                <ul className="flex flex-col gap-2 sm:text-right">
+                <ul className="flex flex-col gap-1 sm:text-right">
                   {a.lines.map((l) => (
                     <li
                       key={l}
-                      className="font-sans text-sm font-medium uppercase tracking-wide text-paper/85 md:text-[0.95rem]"
+                      className="font-sans text-2xs font-medium uppercase tracking-wide text-paper/80 md:text-xs"
                     >
                       {l}
                     </li>

@@ -18,7 +18,7 @@ const HEADLINE = [
  * Closing call to action. A soft accent bloom drifts with scroll behind the
  * headline, which rises character by character like the hero.
  */
-export function CTA() {
+export function CTA({ onBook }: { onBook: () => void }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -64,7 +64,14 @@ export function CTA() {
         </Reveal>
 
         <Reveal delay={0.25} className="mt-12 flex flex-wrap items-center justify-center gap-4">
-          <MagneticButton label="Book a call" href="#booking" variant="solid" />
+          <MagneticButton
+            label="Book a call"
+            onClick={(e) => {
+              e.preventDefault();
+              onBook();
+            }}
+            variant="solid"
+          />
           <MagneticButton
             label={identity.email}
             href={`mailto:${identity.email}`}

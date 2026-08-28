@@ -224,11 +224,11 @@ export const booking = {
   durations: [15, 30, 60],
   defaultDuration: 30,
   availability: {
-    days: [1, 2, 3, 4, 5],
-    start: 9,
-    end: 17,
+    days: [0, 1, 2, 3, 4, 5, 6],
+    start: 8,
+    end: 21,
     hostTimeZone: "Europe/Amsterdam",
-    horizon: 60,
+    horizon: 90,
   },
 } as const;
 

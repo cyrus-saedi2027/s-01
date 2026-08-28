@@ -10,13 +10,13 @@ export function Testimonials() {
   const rowB = testimonials.slice(half);
 
   return (
-    <section id="testimonials" className="relative overflow-hidden py-24 md:py-36">
-      <div className="shell mb-14 md:mb-20">
+    <section id="testimonials" className="relative overflow-hidden py-14 md:py-16">
+      <div className="shell mb-8 md:mb-12">
         <Reveal className="mb-6">
           <MarqueeLabel text="Testimonials" />
         </Reveal>
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-          <h2 className="text-[clamp(2.75rem,7vw,7.5rem)] font-medium leading-[0.9] tracking-tighter">
+          <h2 className="text-[clamp(2.25rem,5.5vw,5rem)] font-medium leading-[0.9] tracking-tighter">
             <MaskLine>Trusted</MaskLine>
             <MaskLine delay={0.08} className="text-dimmer">
               Feedback
@@ -31,7 +31,7 @@ export function Testimonials() {
       </div>
 
       <Reveal amount={0.05}>
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           <Marquee duration={62} pauseOnHover fade>
             {rowA.map((t) => (
               <QuoteCard key={t.name} {...t} />
@@ -65,16 +65,16 @@ function QuoteCard({
   return (
     <figure
       data-cursor="drag"
-      className="group mx-2.5 flex w-[86vw] shrink-0 flex-col justify-between rounded-lg border border-hair bg-surface p-7 transition-colors duration-500 hover:border-hairStrong hover:bg-surfaceUp sm:w-[420px] md:w-[480px] md:p-9"
+      className="group mx-2 flex w-[80vw] shrink-0 flex-col justify-between rounded-lg border border-hair bg-surface p-5 transition-colors duration-500 hover:border-hairStrong hover:bg-surfaceUp sm:w-[380px] md:w-[420px] md:p-6"
     >
-      <span aria-hidden="true" className="mb-5 block text-4xl leading-none text-accent">
+      <span aria-hidden="true" className="mb-3 block text-3xl leading-none text-accent">
         &ldquo;
       </span>
-      <blockquote className="font-sans text-base leading-relaxed text-paper/85">
+      <blockquote className="font-sans text-sm leading-relaxed text-paper/85">
         {quote}
       </blockquote>
-      <figcaption className="mt-8 flex items-center gap-4 border-t border-hair pt-6">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-hairStrong font-sans text-2xs font-semibold tracking-wide transition-colors duration-500 group-hover:border-accent group-hover:bg-accent">
+      <figcaption className="mt-5 flex items-center gap-3 border-t border-hair pt-4">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-hairStrong font-sans text-2xs font-semibold tracking-wide transition-colors duration-500 group-hover:border-accent group-hover:bg-accent">
           {initials}
         </span>
         <span className="min-w-0">
