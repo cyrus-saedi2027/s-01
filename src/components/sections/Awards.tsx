@@ -5,21 +5,27 @@ import { awards, accolade } from "@/data/site";
 import { MarqueeLabel } from "../ui/MarqueeLabel";
 
 /** How far past its frame the plate starts, before scroll pulls it back. */
-const START_SCALE = 1.45;
+const START_SCALE = 1.7;
 
 /**
  * Recognition. An oversized masthead, then the ledger of organisations beside a
  * plate that starts cropped and pulls back to full as the section rises.
  *
- * The pull-back is tied to the section crossing one viewport, so it finishes
- * while the ledger is still being read and then simply holds — `useTransform`
- * clamps at the ends of its range, so no extra guard is needed to stop it.
+ * The pull-back is timed against when the plate is actually in frame, not
+ * against the section's arrival. Ending it at `start start` — one viewport of
+ * scroll — put the plate at full size slightly *before* its bottom edge had
+ * cleared the screen, so the whole pull-back happened while it was still cut
+ * off and there was nothing left to watch by the time you could see all of it.
+ * Ending at the section's foot three quarters down the screen spends the last
+ * stretch of it, 1.15 back to 1.0, exactly over the window where the seal is
+ * wholly visible. After that it holds: `useTransform` clamps at the ends of its
+ * range, so nothing extra is needed to stop it.
  */
 export function Awards() {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "start start"],
+    offset: ["start end", "end 75%"],
   });
   const scale = useTransform(scrollYProgress, [0, 1], [START_SCALE, 1]);
 

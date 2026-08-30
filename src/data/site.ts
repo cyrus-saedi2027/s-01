@@ -234,7 +234,7 @@ export const booking = {
 /** The plate that stands beside the recognition ledger. */
 export const accolade = {
   src: "/art/accolade.svg",
-  alt: "An ember plume rising through darkness under a bright crescent of light",
+  alt: "An award seal: an eight-point star inside a graduated bezel, framed by laurel branches over a ribbon",
 };
 
 export const awards = [
