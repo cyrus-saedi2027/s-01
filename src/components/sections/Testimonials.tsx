@@ -3,20 +3,27 @@ import { Marquee } from "../ui/Marquee";
 import { testimonials } from "@/data/site";
 import { MarqueeLabel } from "../ui/MarqueeLabel";
 
-/** Two counter-scrolling rows of quote cards; hovering pauses the row. */
+/**
+ * Two counter-scrolling rows of quote cards; hovering pauses the row.
+ *
+ * Kept deliberately short. This section is pinned under the archive wall that
+ * follows it (see StackedLayer), and it holds still there while the sheet
+ * approaches — so anything taller than a laptop's viewport spends that hold
+ * with its own heading pushed off the top of the screen.
+ */
 export function Testimonials() {
   const half = Math.ceil(testimonials.length / 2);
   const rowA = testimonials.slice(0, half);
   const rowB = testimonials.slice(half);
 
   return (
-    <section id="testimonials" className="relative overflow-hidden py-14 md:py-16">
-      <div className="shell mb-8 md:mb-12">
-        <Reveal className="mb-6">
+    <section id="testimonials" className="relative overflow-hidden py-10 md:py-11">
+      <div className="shell mb-7 md:mb-8">
+        <Reveal className="mb-4">
           <MarqueeLabel text="Testimonials" />
         </Reveal>
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-          <h2 className="text-[clamp(2.25rem,5.5vw,5rem)] font-medium leading-[0.9] tracking-tighter">
+          <h2 className="text-[clamp(2rem,5vw,4.25rem)] font-medium leading-[0.9] tracking-tighter">
             <MaskLine>Trusted</MaskLine>
             <MaskLine delay={0.08} className="text-dimmer">
               Feedback
@@ -31,7 +38,7 @@ export function Testimonials() {
       </div>
 
       <Reveal amount={0.05}>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <Marquee duration={62} pauseOnHover fade>
             {rowA.map((t) => (
               <QuoteCard key={t.name} {...t} />
@@ -73,7 +80,7 @@ function QuoteCard({
       <blockquote className="font-sans text-sm leading-relaxed text-paper/85">
         {quote}
       </blockquote>
-      <figcaption className="mt-5 flex items-center gap-3 border-t border-hair pt-4">
+      <figcaption className="mt-4 flex items-center gap-3 border-t border-hair pt-4">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-hairStrong font-sans text-2xs font-semibold tracking-wide transition-colors duration-500 group-hover:border-accent group-hover:bg-accent">
           {initials}
         </span>

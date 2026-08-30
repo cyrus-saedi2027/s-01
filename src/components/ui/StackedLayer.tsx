@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Most the pin will ever cut from the top of the section beneath, in px. */
-const MAX_CROP = 80;
-
 /**
  * Two sections stacked on top of each other instead of end to end: `beneath`
  * plays out in full, holds where it finishes, and `children` then rides up
@@ -18,6 +15,13 @@ const MAX_CROP = 80;
  * ResizeObserver. (`bottom: 0` is not the mirror image it looks like: it holds
  * a box while you scroll *toward* it and lets go once it arrives.)
  *
+ * On a screen shorter than the section that offset goes negative and the
+ * heading ends up above the top edge — which is fine, because it was read on
+ * the way in. Clamping it to keep the heading on screen is the trap: the pin
+ * then catches early and the *end* of the section, the part still coming, is
+ * the part that never arrives. Whatever is cut has to be cut from the side
+ * already seen.
+ *
  * `hold` is the beat after that, where the finished section sits still before
  * the sheet reaches it. It wants to be generous: at less than a viewport the
  * section is technically shown and still goes by too fast to read, which is
@@ -31,7 +35,7 @@ const MAX_CROP = 80;
 export function StackedLayer({
   beneath,
   children,
-  hold = "h-[60vh] md:h-[90vh]",
+  hold = "h-[85vh] md:h-[115vh]",
 }: {
   beneath: ReactNode;
   children: ReactNode;
@@ -46,11 +50,7 @@ export function StackedLayer({
   useEffect(() => {
     const el = pin.current;
     if (!el) return;
-    // Anchoring at `viewport - height` shows the section whole, but on a screen
-    // shorter than the section that crops the top — and the top is where the
-    // heading is. Cap the crop so the section always keeps its own title.
-    const measure = () =>
-      setTop(Math.max(Math.min(0, window.innerHeight - el.offsetHeight), -MAX_CROP));
+    const measure = () => setTop(Math.min(0, window.innerHeight - el.offsetHeight));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);

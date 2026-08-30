@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -22,17 +23,21 @@ import {
   dateKey,
   formatTime,
   monthGrid,
+  openCountOn,
   sameDate,
   slotsOn,
   timeZoneChoices,
   weekdayOf,
   zoneLabel,
 } from "@/lib/schedule";
+import { lockScroll, unlockScroll } from "@/lib/scrollLock";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 /** Slow away, quick through the middle, slow in — the sweep between steps. */
 const SWEEP_EASE = [0.65, 0, 0.35, 1] as const;
-const SWEEP = 1.8;
+const SWEEP = 2.7;
+/** Steps in order, so a move between two of them has a direction. */
+const ORDER: Step[] = ["pick", "details", "done"];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 type Step = "pick" | "details" | "done";
@@ -55,7 +60,7 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
   useEffect(() => {
     if (!open) return;
     restoreTo.current = document.activeElement;
-    document.body.dataset.locked = "true";
+    lockScroll();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key !== "Tab") return;
@@ -74,15 +79,17 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.dataset.locked = "false";
-      (restoreTo.current as HTMLElement | null)?.focus?.();
+      unlockScroll();
+      // Plain focus() scrolls its target into view, which would move the page
+      // the lock just went to the trouble of holding still.
+      (restoreTo.current as HTMLElement | null)?.focus?.({ preventScroll: true });
     };
   }, [open, onClose]);
 
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto p-4 md:p-8">
+        <div className="fixed inset-0 z-[90] overflow-y-auto overscroll-contain">
           {/* The glass. A button so a click anywhere off the card dismisses. */}
           {/* The glass fades on its own and briskly: it is a full-viewport
               backdrop filter, and every frame of a long fade re-blurs the whole
@@ -112,6 +119,12 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
             />
           </motion.button>
 
+          {/* The scroller is the outer box and the centring happens in here, on
+              a row that is at least a screen tall. Centring on the scroller
+              itself puts the overflow half above its own top edge, where no
+              amount of scrolling reaches it — which is what the details step
+              ran into as soon as it grew past the viewport. */}
+          <div className="relative flex min-h-full items-center justify-center p-4 md:p-8">
           <motion.div
             ref={card}
             role="dialog"
@@ -124,7 +137,7 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
             exit={{ opacity: 0, y: 14, scale: 0.985, transition: { duration: 0.28, ease: "easeIn" } }}
             transition={{ duration: 0.62, ease: EASE, delay: 0.06 }}
             style={{ willChange: "transform, opacity" }}
-            className="relative z-10 my-auto w-full max-w-6xl overflow-hidden rounded-2xl border border-hairStrong bg-surface shadow-[0_40px_120px_-30px_rgba(0,0,0,0.9)]"
+            className="relative z-10 w-full max-w-6xl overflow-hidden rounded-2xl border border-hairStrong bg-surface shadow-[0_40px_120px_-30px_rgba(0,0,0,0.9)]"
           >
             <button
               type="button"
@@ -139,6 +152,7 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
 
             <BookingFlow onClose={onClose} />
           </motion.div>
+          </div>
         </div>
       )}
     </AnimatePresence>
@@ -147,15 +161,25 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
 
 /* -------------------------------------------------------------------- sweep */
 
-type Frame = { key: string; node: ReactNode };
+type Frame = { key: string; node: ReactNode; index: number };
 
 /**
- * Swaps one step for the next behind a line that travels right to left.
+ * Swaps one step for the next behind a travelling line.
  *
  * The incoming step is laid over the outgoing one and revealed by a clip that
- * follows the line, so nothing pops: what you see appear is already in place.
- * The card's height is tweened alongside on the same curve, otherwise the swap
- * would end with a jump wherever the two steps differ in length.
+ * follows the line, so nothing pops: what appears is already in place. Forward
+ * the line runs right to left; going back it runs the other way, because a
+ * transition that leaves and returns along the same path does not read as
+ * having been undone. The card's height is tweened alongside on the same curve,
+ * or the swap would end with a jump wherever two steps differ in length.
+ *
+ * The timing is the delicate part. React commits the new step before any effect
+ * runs, so an ordinary `useEffect` lets the browser paint one frame of it —
+ * unclipped, at its own height — before the sweep has a chance to start. That
+ * single frame is the flicker you feel just ahead of the line. Everything that
+ * sets the sweep up therefore happens in a layout effect, and the clip and the
+ * height are set on the motion values *before* the render that binds them, so
+ * the first painted frame is already the frozen one.
  */
 function Wipe({ frame }: { frame: Frame }) {
   // The live node is rendered every time. Only the *outgoing* step is frozen —
@@ -163,24 +187,36 @@ function Wipe({ frame }: { frame: Frame }) {
   // incoming one instead would leave the panel showing stale markup for as long
   // as the step lasted.
   const [outgoing, setOutgoing] = useState<ReactNode | null>(null);
+  const [dir, setDir] = useState<1 | -1>(1);
   const [busy, setBusy] = useState(false);
-  const shownKey = useRef(frame.key);
+  const shown = useRef(frame);
   const shownNode = useRef<ReactNode>(frame.node);
+  /** The panel's height while it is at rest — the height to sweep away from. */
+  const resting = useRef(0);
 
   const outBox = useRef<HTMLDivElement>(null);
   const inBox = useRef<HTMLDivElement>(null);
 
   const cut = useMotionValue(100);
-  const clip = useMotionTemplate`inset(0 0 0 ${cut}%)`;
-  const left = useMotionTemplate`${cut}%`;
   const height = useMotionValue(0);
+  const clipL = useMotionTemplate`inset(0 0 0 ${cut}%)`;
+  const clipR = useMotionTemplate`inset(0 ${cut}% 0 0)`;
+  const edgeL = useMotionTemplate`${cut}%`;
+  const edgeR = useMotionTemplate`calc(100% - ${cut}%)`;
+  const clip = dir === 1 ? clipL : clipR;
+  const edge = dir === 1 ? edgeL : edgeR;
 
-  useEffect(() => {
-    if (frame.key === shownKey.current) return;
-    shownKey.current = frame.key;
+  useLayoutEffect(() => {
+    if (frame.key === shown.current.key) return;
+    // Set up before the state change, so the render that first binds these
+    // styles already reads the frozen values rather than last sweep's.
+    height.set(resting.current || inBox.current?.offsetHeight || 0);
+    cut.set(100);
+    setDir(frame.index >= shown.current.index ? 1 : -1);
     setOutgoing(shownNode.current);
     setBusy(true);
-  }, [frame.key]);
+    shown.current = frame;
+  }, [frame, cut, height]);
 
   // Declared after the effect above, so on the render where the step changes
   // that one still sees the previous node before this replaces it.
@@ -188,12 +224,24 @@ function Wipe({ frame }: { frame: Frame }) {
     shownNode.current = frame.node;
   });
 
+  // Kept current while the panel is at rest — including as a step grows a field
+  // or opens a menu — so a sweep always starts from the height on screen.
   useEffect(() => {
+    if (busy) return;
+    const el = inBox.current;
+    if (!el) return;
+    const measure = () => {
+      resting.current = el.offsetHeight;
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [busy]);
+
+  useLayoutEffect(() => {
     if (!busy) return;
-    const from = outBox.current?.offsetHeight ?? 0;
-    const to = inBox.current?.offsetHeight ?? from;
-    height.set(from);
-    cut.set(100);
+    const to = inBox.current?.offsetHeight ?? height.get();
 
     const sweep = animate(cut, 0, { duration: SWEEP, ease: SWEEP_EASE });
     const grow = animate(height, to, { duration: SWEEP, ease: SWEEP_EASE });
@@ -212,7 +260,10 @@ function Wipe({ frame }: { frame: Frame }) {
   }, [busy, cut, height]);
 
   return (
-    <motion.div className="relative overflow-hidden" style={busy ? { height } : undefined}>
+    <motion.div
+      className="relative overflow-hidden"
+      style={busy ? { height, willChange: "height" } : undefined}
+    >
       {/* Outgoing sits underneath and still; incoming is clipped open over it. */}
       {outgoing && (
         <div ref={outBox} className="absolute inset-x-0 top-0 bg-surface" aria-hidden="true">
@@ -223,7 +274,7 @@ function Wipe({ frame }: { frame: Frame }) {
       {/* Opaque, or the step underneath reads through the part already swept. */}
       <motion.div
         ref={inBox}
-        style={busy ? { clipPath: clip, WebkitClipPath: clip } : undefined}
+        style={busy ? { clipPath: clip, WebkitClipPath: clip, willChange: "clip-path" } : undefined}
         className={busy ? "relative bg-surface" : undefined}
       >
         {frame.node}
@@ -233,7 +284,7 @@ function Wipe({ frame }: { frame: Frame }) {
         <motion.span
           aria-hidden="true"
           className="pointer-events-none absolute inset-y-0 w-px bg-accent"
-          style={{ left, boxShadow: "0 0 24px 2px rgba(253,50,28,0.55)" }}
+          style={{ left: edge, boxShadow: "0 0 24px 2px rgba(253,50,28,0.55)" }}
         />
       )}
     </motion.div>
@@ -247,8 +298,7 @@ function BookingFlow({ onClose }: { onClose: () => void }) {
   const zones = useMemo(() => timeZoneChoices(), []);
 
   const [zone, setZone] = useState(zones[0]);
-  const [hour12, setHour12] = useState(true);
-  const [duration, setDuration] = useState<number>(booking.defaultDuration);
+  const duration = booking.duration;
 
   const today = useMemo(() => civilDateIn(now, zone), [now, zone]);
   const [month, setMonth] = useState<CivilDate>({ y: today.y, m: today.m, d: 1 });
@@ -260,22 +310,25 @@ function BookingFlow({ onClose }: { onClose: () => void }) {
   const avail = booking.availability;
   const grid = useMemo(() => monthGrid(month.y, month.m, 0), [month]);
 
-  const slotsByDay = useMemo(() => {
-    const map = new Map<number, number[]>();
-    for (const d of grid) map.set(dateKey(d), slotsOn(d, duration, avail, now, zone));
+  // Counts for the grid, instants only for the day on show. Resolving all
+  // forty-two days to instants is the same answer arrived at some thousands of
+  // conversions later, and that walk is what the panel used to open through.
+  const openByDay = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const d of grid) map.set(dateKey(d), openCountOn(d, avail, now, zone));
     return map;
-  }, [grid, duration, avail, now, zone]);
+  }, [grid, avail, now, zone]);
 
   const daySlots = useMemo(
-    () => (selected ? slotsByDay.get(dateKey(selected)) ?? [] : []),
-    [selected, slotsByDay]
+    () => (selected ? slotsOn(selected, avail, now, zone) : []),
+    [selected, avail, now, zone]
   );
 
   useEffect(() => {
     if (selected) return;
-    const open = grid.find((d) => (slotsByDay.get(dateKey(d)) ?? []).length > 0);
+    const open = grid.find((d) => (openByDay.get(dateKey(d)) ?? 0) > 0);
     if (open) setSelected(open);
-  }, [selected, grid, slotsByDay]);
+  }, [selected, grid, openByDay]);
 
   useEffect(() => {
     if (slot !== null && !daySlots.includes(slot)) setSlot(null);
@@ -286,13 +339,11 @@ function BookingFlow({ onClose }: { onClose: () => void }) {
   const summary = (
     <Summary
       duration={duration}
-      onDuration={step === "pick" ? setDuration : undefined}
       zone={zone}
       onZone={step === "pick" ? setZone : undefined}
       zones={zones}
       now={now}
       slot={step === "pick" ? null : slot}
-      hour12={hour12}
     />
   );
 
@@ -302,7 +353,6 @@ function BookingFlow({ onClose }: { onClose: () => void }) {
         slot={slot!}
         duration={duration}
         zone={zone}
-        hour12={hour12}
         filled={filled!}
         onRestart={() => {
           setFilled(null);
@@ -327,7 +377,7 @@ function BookingFlow({ onClose }: { onClose: () => void }) {
               month={month}
               today={today}
               grid={grid}
-              slotsByDay={slotsByDay}
+              openByDay={openByDay}
               selected={selected}
               onSelect={(d) => {
                 setSelected(d);
@@ -340,8 +390,6 @@ function BookingFlow({ onClose }: { onClose: () => void }) {
               selected={selected}
               slots={daySlots}
               zone={zone}
-              hour12={hour12}
-              onHour12={setHour12}
               onPick={(at) => {
                 setSlot(at);
                 setStep("details");
@@ -360,29 +408,25 @@ function BookingFlow({ onClose }: { onClose: () => void }) {
       </div>
     );
 
-  return <Wipe frame={{ key: step, node }} />;
+  return <Wipe frame={{ key: step, node, index: ORDER.indexOf(step) }} />;
 }
 
 /* ------------------------------------------------------------------ summary */
 
 function Summary({
   duration,
-  onDuration,
   zone,
   onZone,
   zones,
   now,
   slot,
-  hour12,
 }: {
   duration: number;
-  onDuration?: (n: number) => void;
   zone: string;
   onZone?: (z: string) => void;
   zones: string[];
   now: number;
   slot: number | null;
-  hour12: boolean;
 }) {
   return (
     <div className="flex flex-col gap-5 p-6 md:p-8">
@@ -399,35 +443,12 @@ function Summary({
         <Row icon="date">
           <span className="block">{longDate(slot, zone)}</span>
           <span className="block text-dim">
-            {formatTime(slot, zone, hour12)} – {formatTime(slot + duration * 60000, zone, hour12)}
+            {formatTime(slot, zone)} – {formatTime(slot + duration * 60000, zone)}
           </span>
         </Row>
       )}
 
-      <Row icon="clock">
-        {onDuration ? (
-          <span className="flex flex-wrap gap-1.5">
-            {booking.durations.map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => onDuration(d)}
-                aria-pressed={d === duration}
-                className={cn(
-                  "rounded-full border px-3 py-1 font-sans text-2xs font-medium transition-colors duration-300",
-                  d === duration
-                    ? "border-paper bg-paper text-ink"
-                    : "border-hairStrong text-dim hover:border-paper/50 hover:text-paper"
-                )}
-              >
-                {d}m
-              </button>
-            ))}
-          </span>
-        ) : (
-          <span>{duration}m</span>
-        )}
-      </Row>
+      <Row icon="clock">{duration} minutes</Row>
 
       <Row icon="place">{booking.place}</Row>
 
@@ -582,7 +603,7 @@ function Calendar({
   month,
   today,
   grid,
-  slotsByDay,
+  openByDay,
   selected,
   onSelect,
   onMonth,
@@ -591,7 +612,7 @@ function Calendar({
   month: CivilDate;
   today: CivilDate;
   grid: CivilDate[];
-  slotsByDay: Map<number, number[]>;
+  openByDay: Map<number, number>;
   selected: CivilDate | null;
   onSelect: (d: CivilDate) => void;
   onMonth: (n: number) => void;
@@ -599,14 +620,14 @@ function Calendar({
 }) {
   const cells = useRef(new Map<number, HTMLButtonElement>());
   const [roving, setRoving] = useState<number>(() =>
-    dateKey(selected ?? firstOpen(grid, slotsByDay) ?? today)
+    dateKey(selected ?? firstOpen(grid, openByDay) ?? today)
   );
 
   useEffect(() => {
     if (!grid.some((d) => dateKey(d) === roving)) {
-      setRoving(dateKey(firstOpen(grid, slotsByDay) ?? grid[0]));
+      setRoving(dateKey(firstOpen(grid, openByDay) ?? grid[0]));
     }
-  }, [grid, slotsByDay, roving]);
+  }, [grid, openByDay, roving]);
 
   const move = (from: number, by: number) => {
     const i = grid.findIndex((d) => dateKey(d) === from);
@@ -658,7 +679,7 @@ function Calendar({
         <div className="grid grid-cols-7 gap-1">
           {grid.map((d) => {
             const key = dateKey(d);
-            const open = (slotsByDay.get(key) ?? []).length;
+            const open = openByDay.get(key) ?? 0;
             const inMonth = d.m === month.m;
             const isSelected = selected != null && sameDate(d, selected);
             const isToday = sameDate(d, today);
@@ -709,8 +730,8 @@ function Calendar({
   );
 }
 
-const firstOpen = (grid: CivilDate[], slots: Map<number, number[]>) =>
-  grid.find((d) => (slots.get(dateKey(d)) ?? []).length > 0);
+const firstOpen = (grid: CivilDate[], open: Map<number, number>) =>
+  grid.find((d) => (open.get(dateKey(d)) ?? 0) > 0);
 
 function Step({ dir, onClick, disabled }: { dir: "prev" | "next"; onClick: () => void; disabled?: boolean }) {
   return (
@@ -734,43 +755,19 @@ function SlotList({
   selected,
   slots,
   zone,
-  hour12,
-  onHour12,
   onPick,
 }: {
   selected: CivilDate | null;
   slots: number[];
   zone: string;
-  hour12: boolean;
-  onHour12: (v: boolean) => void;
   onPick: (at: number) => void;
 }) {
   return (
     <div className="flex min-h-[22rem] flex-col p-6 md:p-8">
-      <div className="mb-4 flex items-center justify-between gap-3 pr-10">
+      <div className="mb-4 pr-10">
         <h3 className="whitespace-nowrap font-sans text-sm font-medium">
-          {selected ? (
-            WEEKDAYS[weekdayOf(selected)]
-          ) : (
-            <span className="text-dim">Choose a day</span>
-          )}
+          {selected ? WEEKDAYS[weekdayOf(selected)] : <span className="text-dim">Choose a day</span>}
         </h3>
-        <div className="flex overflow-hidden rounded-md border border-hairStrong">
-          {[true, false].map((v) => (
-            <button
-              key={String(v)}
-              type="button"
-              onClick={() => onHour12(v)}
-              aria-pressed={hour12 === v}
-              className={cn(
-                "px-2 py-1 font-sans text-2xs font-medium transition-colors duration-300",
-                hour12 === v ? "bg-paper text-ink" : "text-dim hover:text-paper"
-              )}
-            >
-              {v ? "12h" : "24h"}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="-mr-2 flex max-h-[24rem] flex-col gap-2 overflow-y-auto pr-2">
@@ -789,7 +786,7 @@ function SlotList({
               onClick={() => onPick(at)}
               className="shrink-0 rounded-md border border-hairStrong py-2.5 text-center font-sans text-sm transition-colors duration-300 hover:border-paper hover:bg-paper hover:text-ink"
             >
-              {formatTime(at, zone, hour12)}
+              {formatTime(at, zone)}
             </motion.button>
           ))
         )}
@@ -1055,7 +1052,8 @@ function DetailsForm({
   const [touched, setTouched] = useState(false);
   const first = useRef<HTMLInputElement>(null);
 
-  useEffect(() => first.current?.focus(), []);
+  // Without preventScroll the dialog jumps to put this field mid-view.
+  useEffect(() => first.current?.focus({ preventScroll: true }), []);
 
   const mail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
   const errors = {
@@ -1202,7 +1200,6 @@ function Confirmation({
   slot,
   duration,
   zone,
-  hour12,
   filled,
   onRestart,
   onClose,
@@ -1210,7 +1207,6 @@ function Confirmation({
   slot: number;
   duration: number;
   zone: string;
-  hour12: boolean;
   filled: Filled;
   onRestart: () => void;
   onClose: () => void;
@@ -1219,7 +1215,7 @@ function Confirmation({
   const end = slot + duration * 60000;
 
   const profiles = PLATFORMS.filter((p) => filled.links[p.key]);
-  const when = `${longDate(slot, zone)}, ${formatTime(slot, zone, hour12)} – ${formatTime(end, zone, hour12)} (${zoneLabel(zone, slot)})`;
+  const when = `${longDate(slot, zone)}, ${formatTime(slot, zone)} – ${formatTime(end, zone)} (${zoneLabel(zone, slot)})`;
 
   /**
    * Everything the invite should carry, in the order it reads best. Google
@@ -1247,39 +1243,94 @@ function Confirmation({
 
   const copyText = `${booking.title}\n${when}\n${booking.place}\n\n${details}`;
 
+  /*
+   * Two columns and the panel's own padding, rather than a narrow centred
+   * column: a column leaves the card walls uneven — inches of margin at the
+   * sides against a hand's width top and bottom — and stacks what is really a
+   * short receipt into something taller than the screen. Across, at the sizes
+   * the other steps use, the whole of it lands inside one view.
+   */
   return (
-    <div className="mx-auto flex max-w-xl flex-col items-center gap-6 p-8 text-center md:p-12">
-      <motion.span
-        initial={{ scale: 0.7, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.45, ease: EASE, delay: 0.1 }}
-        className="grid h-12 w-12 place-items-center rounded-full border border-accent text-accent"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6">
-          <motion.path
-            d="m5 13 4 4L19 7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.5, ease: EASE, delay: 0.25 }}
-          />
-        </svg>
-      </motion.span>
+    <div className="grid gap-7 p-6 md:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] md:gap-12 md:p-8">
+      <div className="flex flex-col items-start gap-4">
+        <motion.span
+          initial={{ scale: 0.7, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.45, ease: EASE, delay: 0.1 }}
+          className="grid h-10 w-10 place-items-center rounded-full border border-accent text-accent"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+            <motion.path
+              d="m5 13 4 4L19 7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.5, ease: EASE, delay: 0.25 }}
+            />
+          </svg>
+        </motion.span>
 
-      <div>
-        <h3 className="text-2xl font-medium tracking-tight md:text-3xl">This time is held</h3>
-        <p className="mt-2 font-sans text-sm text-dim">Add it to your calendar and I will see you then.</p>
+        <div>
+          <h3 className="text-xl font-medium tracking-tight md:text-2xl">This time is held</h3>
+          <p className="mt-1.5 font-sans text-xs leading-relaxed text-dim">
+            Add it to your calendar and I will see you then.
+          </p>
+        </div>
+
+        <div className="mt-auto flex flex-wrap items-center gap-2.5 pt-1">
+          <a
+            href={gcal}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full bg-paper px-4 py-2 font-sans text-xs font-semibold text-ink transition-opacity duration-300 hover:opacity-85"
+          >
+            Add to calendar
+          </a>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(copyText);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              } catch {
+                setCopied(false);
+              }
+            }}
+            className="rounded-full border border-hairStrong px-4 py-2 font-sans text-xs transition-colors duration-300 hover:border-paper"
+          >
+            {copied ? "Copied" : "Copy details"}
+          </button>
+        </div>
+
+        <p className="font-sans text-2xs text-dimmer">
+          <button
+            type="button"
+            onClick={onRestart}
+            className="underline underline-offset-4 transition-colors duration-300 hover:text-paper"
+          >
+            Pick another time
+          </button>
+          {" · "}
+          <button
+            type="button"
+            onClick={onClose}
+            className="underline underline-offset-4 transition-colors duration-300 hover:text-paper"
+          >
+            Back to the site
+          </button>
+        </p>
       </div>
 
-      <dl className="w-full divide-y divide-hair border-y border-hair text-left">
+      <dl className="grid content-start gap-x-8 gap-y-4 border-t border-hair pt-5 sm:grid-cols-2 md:border-l md:border-t-0 md:pl-12 md:pt-0">
         <Line term="What">
           {booking.title} with {identity.name}
         </Line>
         <Line term="When">
           {longDate(slot, zone)}
           <span className="block text-dim">
-            {formatTime(slot, zone, hour12)} – {formatTime(end, zone, hour12)} · {zoneLabel(zone, slot)}
+            {formatTime(slot, zone)} – {formatTime(end, zone)} · {zoneLabel(zone, slot)}
           </span>
         </Line>
         <Line term="Who">
@@ -1287,9 +1338,9 @@ function Confirmation({
           <span className="block text-dim">{filled.email}</span>
           {filled.phone && <span className="block text-dim">{filled.phone}</span>}
           {profiles.length > 0 && (
-            <span className="mt-2 flex flex-wrap items-center gap-3">
+            <span className="mt-1.5 flex flex-wrap items-center gap-2.5">
               {profiles.map((p) => (
-                <span key={p.key} className="flex items-center gap-1.5 text-dim" style={{ color: p.brand }}>
+                <span key={p.key} className="flex items-center gap-1" style={{ color: p.brand }}>
                   <Glyph platform={p} />
                   <span className="font-sans text-2xs">{filled.links[p.key]}</span>
                 </span>
@@ -1298,53 +1349,22 @@ function Confirmation({
           )}
         </Line>
         <Line term="Where">{booking.place}</Line>
-        {filled.notes && <Line term="Notes">{filled.notes}</Line>}
+        {filled.notes && (
+          <div className="sm:col-span-2">
+            <Line term="Notes">{filled.notes}</Line>
+          </div>
+        )}
       </dl>
-
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <a
-          href={gcal}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-full bg-paper px-5 py-2.5 font-sans text-sm font-semibold text-ink transition-opacity duration-300 hover:opacity-85"
-        >
-          Add to calendar
-        </a>
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(copyText);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            } catch {
-              setCopied(false);
-            }
-          }}
-          className="rounded-full border border-hairStrong px-5 py-2.5 font-sans text-sm transition-colors duration-300 hover:border-paper"
-        >
-          {copied ? "Copied" : "Copy details"}
-        </button>
-      </div>
-
-      <p className="font-sans text-2xs text-dimmer">
-        <button type="button" onClick={onRestart} className="underline underline-offset-4 transition-colors duration-300 hover:text-paper">
-          Pick another time
-        </button>
-        {" · "}
-        <button type="button" onClick={onClose} className="underline underline-offset-4 transition-colors duration-300 hover:text-paper">
-          Back to the site
-        </button>
-      </p>
     </div>
   );
 }
 
+/** One labelled entry on the receipt: the label over the value, not beside it. */
 function Line({ term, children }: { term: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-4 py-4">
-      <dt className="font-sans text-2xs font-medium uppercase tracking-wider text-dim">{term}</dt>
-      <dd className="font-sans text-sm text-paper/90">{children}</dd>
+    <div className="min-w-0">
+      <dt className="font-sans text-2xs font-medium uppercase tracking-wider text-dimmer">{term}</dt>
+      <dd className="mt-1 font-sans text-xs leading-relaxed text-paper/90">{children}</dd>
     </div>
   );
 }

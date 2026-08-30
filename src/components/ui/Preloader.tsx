@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { lockScroll, unlockScroll } from "@/lib/scrollLock";
 
 const EASE = [0.76, 0, 0.24, 1] as const;
 const LETTERS = ["Z", "A", "Y", "L", "A"];
@@ -11,9 +12,17 @@ const LETTERS = ["Z", "A", "Y", "L", "A"];
 export function Preloader({ onDone }: { onDone: () => void }) {
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(true);
+  const [gone, setGone] = useState(false);
+
+  // Balanced against this effect rather than against `finish`, so a remount
+  // (React's development double-invoke) cannot leave the page locked.
+  useEffect(() => {
+    if (gone) return;
+    lockScroll();
+    return unlockScroll;
+  }, [gone]);
 
   useEffect(() => {
-    document.body.dataset.locked = "true";
     const started = performance.now();
     const DURATION = 1900;
 
@@ -33,7 +42,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
   }, []);
 
   const finish = () => {
-    document.body.dataset.locked = "false";
+    setGone(true);
     window.scrollTo(0, 0);
     onDone();
   };

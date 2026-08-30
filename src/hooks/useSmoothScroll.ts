@@ -49,7 +49,7 @@ export function useSmoothScroll(enabled = true) {
 
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey) return; // pinch-zoom
-      if (document.body.dataset.locked === "true") return;
+      if (document.documentElement.dataset.locked === "true") return;
       e.preventDefault();
       target = Math.max(0, Math.min(limit, target + e.deltaY));
       start();

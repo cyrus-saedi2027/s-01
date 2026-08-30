@@ -215,18 +215,18 @@ export const showcase = {
 
 /**
  * The booking panel. `availability` is wall-clock time on the visitor's own
- * clock, so the day always runs 08:00–21:00 whichever zone they are reading in.
+ * clock: the day runs the full twenty-four hours, in half hours, whichever zone
+ * they happen to be reading it in.
  */
 export const booking = {
   title: "Intro call",
   blurb: "Tell me what you are building and where it is stuck. Thirty minutes is usually enough to work out whether I am the right person for it.",
   place: "Google Meet",
-  durations: [15, 30, 60],
-  defaultDuration: 30,
+  duration: 30,
   availability: {
     days: [0, 1, 2, 3, 4, 5, 6],
-    start: 8,
-    end: 21,
+    start: 0,
+    end: 24,
     horizon: 90,
   },
 } as const;

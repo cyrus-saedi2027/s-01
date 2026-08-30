@@ -11,18 +11,37 @@
 /** A calendar date with no time and no zone attached. */
 export type CivilDate = { y: number; m: number; d: number };
 
+/**
+ * Cached formatters, keyed by zone.
+ *
+ * Building an `Intl.DateTimeFormat` is by far the expensive half of using one —
+ * it loads and compiles the zone's rules — and resolving a month of days walks
+ * this path thousands of times. Constructed per call it was most of the cost of
+ * opening the panel.
+ */
+const cache = new Map<string, Intl.DateTimeFormat>();
+const formatter = (key: string, make: () => Intl.DateTimeFormat) => {
+  let f = cache.get(key);
+  if (!f) cache.set(key, (f = make()));
+  return f;
+};
+
 /** Milliseconds a zone is ahead of UTC at a given instant. */
 export function zoneOffset(at: number, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).formatToParts(new Date(at));
+  const parts = formatter(
+    `offset:${timeZone}`,
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        hourCycle: "h23",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+  ).formatToParts(new Date(at));
 
   const f = (type: string) => Number(parts.find((p) => p.type === type)!.value);
   const asIfUtc = Date.UTC(f("year"), f("month") - 1, f("day"), f("hour"), f("minute"), f("second"));
@@ -52,14 +71,32 @@ export function zonedTimeToInstant(
 
 /** The civil date an instant falls on, as read in `timeZone`. */
 export function civilDateIn(at: number, timeZone: string): CivilDate {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(at));
+  const parts = formatter(
+    `date:${timeZone}`,
+    () =>
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+  ).formatToParts(new Date(at));
   const f = (type: string) => Number(parts.find((p) => p.type === type)!.value);
   return { y: f("year"), m: f("month") - 1, d: f("day") };
+}
+
+/** The clock the panel reads and writes with: 24 hour, zero padded. */
+const clock = (timeZone: string) =>
+  formatter(
+    `clock:${timeZone}`,
+    () => new Intl.DateTimeFormat("en-GB", { timeZone, hourCycle: "h23", hour: "2-digit", minute: "2-digit" })
+  );
+
+/** Minutes since midnight on the clock in `timeZone`. */
+export function minutesOfDayIn(at: number, timeZone: string): number {
+  const parts = clock(timeZone).formatToParts(new Date(at));
+  const f = (type: string) => Number(parts.find((p) => p.type === type)!.value);
+  return f("hour") * 60 + f("minute");
 }
 
 export const sameDate = (a: CivilDate, b: CivilDate) =>
@@ -95,9 +132,9 @@ export type Availability = {
   /** Open weekdays, 0 = Sunday. */
   days: readonly number[];
   /**
-   * Wall-clock hours, end exclusive, read in whichever zone the visitor has
-   * selected — so the day always runs from `start` to `end` on their own clock
-   * rather than sliding by the offset between them and the studio.
+   * The window, in whole hours on the visitor's own clock — so the day runs
+   * from `start` to `end` wherever they are reading it, rather than sliding by
+   * the offset between them and the studio. `end` is exclusive.
    */
   start: number;
   end: number;
@@ -105,79 +142,81 @@ export type Availability = {
   horizon: number;
 };
 
-/**
- * Stable pseudo-random in [0, 1) from a date and index — same day, same gaps.
- *
- * Two things this has to get right, both of which it got wrong before:
- * every multiply goes through `Math.imul`, because a plain
- * `key * 2654435761` is a double and with a key around 2e7 the product passes
- * 2^53, losing exactly the low bits the mixing works on; and the result is
- * coerced back to unsigned before the divide, because `^` yields a signed
- * int32. Either one alone pushed three quarters of the day into "booked".
- */
-function jitter(key: number, i: number): number {
-  let h = (Math.imul(key, 2654435761) ^ Math.imul(i + 1, 40503)) >>> 0;
-  h ^= h >>> 15;
-  h = Math.imul(h, 2246822507) >>> 0;
-  h ^= h >>> 13;
-  h = Math.imul(h, 3266489909) >>> 0;
-  h ^= h >>> 16;
-  // `^` yields a *signed* int32. Without this the top bit reads as negative and
-  // every such value falls under any threshold — half the range, silently.
-  return (h >>> 0) / 4294967296;
+/** Every slot is half an hour, and they run back to back. */
+export const SLOT_MINUTES = 30;
+
+/** Whether a date is inside the open window at all, before looking at times. */
+function isOpenDay(date: CivilDate, avail: Availability, now: number, timeZone: string): boolean {
+  const today = civilDateIn(now, timeZone);
+  if (dateKey(date) < dateKey(today)) return false;
+
+  const horizon = new Date(Date.UTC(today.y, today.m, today.d + avail.horizon));
+  if (dateKey(date) > dateKey(civilDateIn(horizon.getTime(), "UTC"))) return false;
+
+  return avail.days.includes(weekdayOf(date));
 }
 
 /**
  * Open slots on a date, as instants, ascending.
  *
- * Some are dropped so the month reads like a real diary rather than a
- * timetable; the drops are derived from the date, so a day looks the same on
- * every render and on every visit.
+ * A continuous run from the first half hour of the window to the last, with
+ * nothing left out in the middle. A gap in a column of times does not read as a
+ * booked hour, it reads as arithmetic that went wrong — 10:45 followed by 11:15
+ * looks like a bug whatever it means — so the only slots missing here are the
+ * ones that have already gone by.
  */
 export function slotsOn(
   date: CivilDate,
-  durationMinutes: number,
   avail: Availability,
   now: number,
   timeZone: string
 ): number[] {
-  const today = civilDateIn(now, timeZone);
-  if (dateKey(date) < dateKey(today)) return [];
+  if (!isOpenDay(date, avail, now, timeZone)) return [];
 
-  const horizon = new Date(Date.UTC(today.y, today.m, today.d + avail.horizon));
-  if (dateKey(date) > dateKey(civilDateIn(horizon.getTime(), "UTC"))) return [];
-
-  if (!avail.days.includes(weekdayOf(date))) return [];
-
-  const key = dateKey(date);
-  const step = durationMinutes;
-  const from = avail.start * 60;
   const out: number[] = [];
+  let last = -Infinity;
 
-  for (let mins = from; mins + step <= avail.end * 60; mins += step) {
-    // Index by position in the day, so a slot's fate does not depend on how
-    // many before it happened to survive.
-    if (jitter(key, (mins - from) / step) < TAKEN) continue;
+  for (let mins = avail.start * 60; mins + SLOT_MINUTES <= avail.end * 60; mins += SLOT_MINUTES) {
     const at = zonedTimeToInstant(date, Math.floor(mins / 60), mins % 60, timeZone);
-    if (at <= now) continue; // today's slots that have passed
+    if (at <= now) continue; // today, already gone
+    // The hour a spring-forward skips has no instant of its own: its half hours
+    // resolve onto the hour that replaced it. Keep the run strictly ascending
+    // and the duplicates fall out.
+    if (at <= last) continue;
+    last = at;
     out.push(at);
   }
   return out;
 }
 
-/** Share of the day already booked, so a month reads like a diary. */
-const TAKEN = 0.24;
+/**
+ * How many slots a date still has open, without resolving any of them.
+ *
+ * The calendar asks this of forty-two cells at a time and only wants a count,
+ * so it is arithmetic on the window rather than a walk through the day. On the
+ * two days a year a zone changes offset it can be one slot out, which reaches
+ * no further than the dot under a date.
+ */
+export function openCountOn(
+  date: CivilDate,
+  avail: Availability,
+  now: number,
+  timeZone: string
+): number {
+  if (!isOpenDay(date, avail, now, timeZone)) return 0;
 
-/** Formats an instant as a time of day in the viewer's zone. */
-export function formatTime(at: number, timeZone: string, hour12: boolean): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12,
-  })
-    .format(new Date(at))
-    .toLowerCase();
+  const last = avail.end * 60 - SLOT_MINUTES;
+  const from =
+    dateKey(date) > dateKey(civilDateIn(now, timeZone))
+      ? avail.start * 60
+      : Math.max(avail.start * 60, Math.ceil((minutesOfDayIn(now, timeZone) + 1) / SLOT_MINUTES) * SLOT_MINUTES);
+
+  return Math.max(0, Math.floor((last - from) / SLOT_MINUTES) + 1);
+}
+
+/** Formats an instant as a time of day, on the viewer's clock. */
+export function formatTime(at: number, timeZone: string): string {
+  return clock(timeZone).format(new Date(at));
 }
 
 /** The zones offered in the picker, with the viewer's own first. */

@@ -43,6 +43,11 @@ export default function App() {
   // Anchor links have to bypass the smooth-scroll target, so handle them here.
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
+      // A link that has already handled its own click is not an anchor jump.
+      // The CTA is an <a href="#contact"> that opens the booking panel instead,
+      // and without this it also scrolled the page to the contact section —
+      // so the panel appeared to open only from one place on the page.
+      if (e.defaultPrevented) return;
       const link = (e.target as HTMLElement)?.closest?.<HTMLAnchorElement>('a[href^="#"]');
       if (!link) return;
       const id = link.getAttribute("href")!.slice(1);
