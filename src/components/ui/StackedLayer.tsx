@@ -20,9 +20,9 @@ import { cn } from "@/lib/utils";
  *
  * `hold` is the beat after that, where the section sits still and complete
  * before the sheet reaches it — and it is exactly how long the section is on
- * screen with nothing over it, so it wants to be generous. At around a
- * viewport it is technically shown and still goes past too quickly to take in,
- * which is indistinguishable from never having been shown at all.
+ * screen with nothing over it. It is a balance and not a maximum: the section
+ * is pinned for every pixel of it, so a hold much past a screen stops reading
+ * as a pause and starts reading as a page that will not move on.
  *
  * Once the sheet covers the viewport the section underneath is hidden
  * outright. It stays in the layout, pinned, with its marquees running, and
@@ -42,7 +42,7 @@ import { cn } from "@/lib/utils";
 export function StackedLayer({
   beneath,
   children,
-  hold = "h-[130vh] md:h-[190vh]",
+  hold = "h-[60vh] md:h-[80vh]",
 }: {
   beneath: ReactNode;
   children: ReactNode;
