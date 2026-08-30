@@ -42,7 +42,7 @@ import { cn } from "@/lib/utils";
 export function StackedLayer({
   beneath,
   children,
-  hold = "h-[60vh] md:h-[80vh]",
+  hold = "h-[60vh] md:h-[70vh]",
 }: {
   beneath: ReactNode;
   children: ReactNode;
