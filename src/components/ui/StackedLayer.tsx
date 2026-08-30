@@ -18,27 +18,38 @@ import { cn } from "@/lib/utils";
  * a phone `100vh` is the viewport with the browser's chrome hidden, which is
  * taller than the screen you are actually looking at.
  *
- * `hold` is the beat after that, where the finished section sits still before
- * the sheet reaches it. It wants to be generous: at less than a viewport the
- * section is technically shown and still goes by too fast to read, which is
- * indistinguishable from never having been shown at all.
+ * `hold` is the beat after that, where the section sits still and complete
+ * before the sheet reaches it — and it is exactly how long the section is on
+ * screen with nothing over it, so it wants to be generous. At around a
+ * viewport it is technically shown and still goes past too quickly to take in,
+ * which is indistinguishable from never having been shown at all.
  *
  * Once the sheet covers the viewport the section underneath is hidden
  * outright. It stays in the layout, pinned, with its marquees running, and
  * painting all of that under an opaque cover for the rest of the scroll is the
  * kind of steady waste that reads as a stutter.
+ *
+ * That flag is read from the sheet's own position on each frame, deliberately.
+ * It used to come from an IntersectionObserver on a one-pixel marker at the top
+ * of the sheet, and an observer only reports a *crossing*: scroll up past that
+ * marker in a single step — a flick, an anchor jump, one frame of the inertial
+ * scroller — and it goes from above the viewport to below it without ever
+ * intersecting, so nothing fires and the flag stays stuck on. The section then
+ * stays hidden with nothing over it, for the rest of the visit. Reading the
+ * geometry cannot get stuck: whatever happened between two frames, the answer
+ * this frame comes from where the sheet actually is.
  */
 export function StackedLayer({
   beneath,
   children,
-  hold = "h-[85vh] md:h-[115vh]",
+  hold = "h-[130vh] md:h-[190vh]",
 }: {
   beneath: ReactNode;
   children: ReactNode;
   /** Height class for the pause between the two, in viewport units. */
   hold?: string;
 }) {
-  const edge = useRef<HTMLSpanElement>(null);
+  const sheet = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | undefined>(undefined);
   const [covered, setCovered] = useState(false);
 
@@ -54,16 +65,28 @@ export function StackedLayer({
   }, []);
 
   useEffect(() => {
-    const el = edge.current;
+    const el = sheet.current;
     if (!el) return;
-    // Fires only when the sheet's top edge crosses the top of the screen, so
-    // this costs two callbacks per pass rather than anything per frame.
-    const io = new IntersectionObserver(
-      ([entry]) => setCovered(entry.boundingClientRect.bottom <= 0),
-      { threshold: 0 }
-    );
-    io.observe(el);
-    return () => io.disconnect();
+    // One rect read per frame while the page is moving, and none when it is
+    // not. React bails out when the boolean has not changed, so this settles
+    // into two renders per pass.
+    let queued = 0;
+    const read = () => {
+      queued = 0;
+      setCovered(el.getBoundingClientRect().top <= 0);
+    };
+    const onMove = () => {
+      if (queued) return;
+      queued = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener("scroll", onMove, { passive: true });
+    window.addEventListener("resize", onMove);
+    return () => {
+      cancelAnimationFrame(queued);
+      window.removeEventListener("scroll", onMove);
+      window.removeEventListener("resize", onMove);
+    };
   }, []);
 
   return (
@@ -83,8 +106,7 @@ export function StackedLayer({
 
       <div aria-hidden="true" className={hold} />
 
-      <div className="relative z-10">
-        <span ref={edge} aria-hidden="true" className="absolute left-0 top-0 h-px w-px" />
+      <div ref={sheet} className="relative z-10">
         {children}
       </div>
     </div>
