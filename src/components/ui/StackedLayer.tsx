@@ -6,21 +6,17 @@ import { cn } from "@/lib/utils";
  * plays out in full, holds where it finishes, and `children` then rides up
  * over it as a separate sheet.
  *
- * The pin offset is measured rather than written. `top: 0` would freeze the
- * section the moment its heading reached the top of the screen, with the rest
- * of it never seen; the section has to stick at `viewport - its own height`, so
- * it catches exactly as its last line lands on the bottom edge. CSS cannot
- * express that — a percentage in `top` resolves against the containing block,
- * not the element — so it is measured here and kept current by a
- * ResizeObserver. (`bottom: 0` is not the mirror image it looks like: it holds
- * a box while you scroll *toward* it and lets go once it arrives.)
- *
- * On a screen shorter than the section that offset goes negative and the
- * heading ends up above the top edge — which is fine, because it was read on
- * the way in. Clamping it to keep the heading on screen is the trap: the pin
- * then catches early and the *end* of the section, the part still coming, is
- * the part that never arrives. Whatever is cut has to be cut from the side
- * already seen.
+ * The pinned box is exactly one viewport tall, and that is the whole trick.
+ * Anything else has a part of the section that cannot be on screen during the
+ * hold, and which part that is only moves with the arithmetic: pinning at
+ * `viewport - height` holds the section by its last line and pushes its
+ * heading off the top; clamping that offset to keep the heading pins it early
+ * and the end never arrives. Both were tried. A box the size of the screen has
+ * no such part — the section catches at `top: 0` with all of it in view — so
+ * `beneath` is handed a screen-sized box and is expected to lay itself out
+ * inside it. The height is measured rather than written as `100vh`, because on
+ * a phone `100vh` is the viewport with the browser's chrome hidden, which is
+ * taller than the screen you are actually looking at.
  *
  * `hold` is the beat after that, where the finished section sits still before
  * the sheet reaches it. It wants to be generous: at less than a viewport the
@@ -42,22 +38,18 @@ export function StackedLayer({
   /** Height class for the pause between the two, in viewport units. */
   hold?: string;
 }) {
-  const pin = useRef<HTMLDivElement>(null);
   const edge = useRef<HTMLSpanElement>(null);
-  const [top, setTop] = useState(0);
+  const [height, setHeight] = useState<number | undefined>(undefined);
   const [covered, setCovered] = useState(false);
 
   useEffect(() => {
-    const el = pin.current;
-    if (!el) return;
-    const measure = () => setTop(Math.min(0, window.innerHeight - el.offsetHeight));
+    const measure = () => setHeight(window.innerHeight);
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
     window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
     return () => {
-      ro.disconnect();
       window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
     };
   }, []);
 
@@ -77,10 +69,12 @@ export function StackedLayer({
   return (
     <div className="relative">
       <div
-        ref={pin}
-        style={{ top }}
+        style={{ top: 0, height }}
         className={cn(
           "sticky z-0 [contain:layout_paint]",
+          // Before the measurement lands there is no height to give it, and a
+          // box of nothing would collapse the layout under it for one frame.
+          height === undefined && "h-screen",
           covered && "invisible"
         )}
       >

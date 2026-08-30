@@ -194,6 +194,7 @@ function Wipe({ frame }: { frame: Frame }) {
   /** The panel's height while it is at rest — the height to sweep away from. */
   const resting = useRef(0);
 
+  const shell = useRef<HTMLDivElement>(null);
   const outBox = useRef<HTMLDivElement>(null);
   const inBox = useRef<HTMLDivElement>(null);
 
@@ -223,6 +224,27 @@ function Wipe({ frame }: { frame: Frame }) {
   useEffect(() => {
     shownNode.current = frame.node;
   });
+
+  /*
+   * Hand the swept properties back when the sweep ends.
+   *
+   * Framer writes a tweened value straight to the element, outside React, so
+   * rendering `style={undefined}` afterwards does not take it off again —
+   * React never knew it was there. The panel kept the exact height it last
+   * swept to and the clip path it finished on, and both of those clip. Open a
+   * field or add a guest after that and the form grew into a box that could no
+   * longer grow with it: the rest of it was cut off, and there was nothing to
+   * scroll to reach it.
+   */
+  useLayoutEffect(() => {
+    if (busy) return;
+    for (const el of [shell.current, inBox.current]) {
+      if (!el) continue;
+      for (const prop of ["height", "clip-path", "-webkit-clip-path", "will-change"]) {
+        el.style.removeProperty(prop);
+      }
+    }
+  }, [busy]);
 
   // Kept current while the panel is at rest — including as a step grows a field
   // or opens a menu — so a sweep always starts from the height on screen.
@@ -261,6 +283,7 @@ function Wipe({ frame }: { frame: Frame }) {
 
   return (
     <motion.div
+      ref={shell}
       className="relative overflow-hidden"
       style={busy ? { height, willChange: "height" } : undefined}
     >
@@ -872,7 +895,7 @@ function SocialBar({
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (editing) input.current?.focus();
+    if (editing) input.current?.focus({ preventScroll: true });
   }, [editing]);
 
   const start = (key: string) => {
