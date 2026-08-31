@@ -14,8 +14,13 @@
     @apply border-hair;
   }
 
+  /* The page ground is the accent, not black.
+     It is never seen while a page is at rest — the shell paints black over the
+     whole document — but it is what the page-to-page wipe uncovers between the
+     old page leaving and the new one arriving, and what the rubber band shows
+     when you overscroll. The reference carries the same red on its body. */
   html {
-    background-color: #000;
+    background-color: theme("colors.accent.DEFAULT");
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: auto;
@@ -69,6 +74,107 @@
   html[data-locked="true"] .grain::after {
     animation: none;
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * Page-to-page wipe
+ *
+ * Read src/lib/pageTransition.ts first — it carries the numbers and why they
+ * are what they are. In short: the old page lifts away and is masked off from
+ * the bottom edge up; half a second later the new one rises back into place
+ * the same way, and the accent ground shows between them.
+ *
+ * These rules sit outside @layer so they always outrank Tailwind's utilities;
+ * the pseudo-elements are outside the document tree, and a layered rule can
+ * lose to a utility class that happens to match on the captured root.
+ * ------------------------------------------------------------------------- */
+
+/* The mask edge is driven by a custom property, which has to be registered to
+   be interpolable — unregistered, it would flip from 0 to 1 mid-animation
+   instead of sweeping. */
+@property --vt-wipe {
+  syntax: "<number>";
+  initial-value: 0;
+  inherits: false;
+}
+
+@keyframes vt-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    --vt-wipe: 0;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-30%);
+    --vt-wipe: 1;
+  }
+}
+
+@keyframes vt-enter {
+  from {
+    opacity: 0;
+    transform: translateY(30%);
+    --vt-wipe: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    --vt-wipe: 1;
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  /* The default plus-lighter blend would brighten the overlap into pink where
+     the two pages cross. */
+  mix-blend-mode: normal;
+  backface-visibility: hidden;
+}
+
+::view-transition-old(root) {
+  animation: vt-exit 1s cubic-bezier(0.73, 0, 0.33, 1) 0s both;
+  /* 0deg puts the gradient's 0% at the bottom edge: below the edge is clear,
+     above it is kept, so the page is taken away from the bottom up. */
+  -webkit-mask-image: linear-gradient(
+    0deg,
+    transparent calc(100% * var(--vt-wipe)),
+    #000 calc(100% * var(--vt-wipe))
+  );
+  mask-image: linear-gradient(
+    0deg,
+    transparent calc(100% * var(--vt-wipe)),
+    #000 calc(100% * var(--vt-wipe))
+  );
+}
+
+::view-transition-new(root) {
+  animation: vt-enter 1s cubic-bezier(0.73, 0, 0.33, 1) 0.5s both;
+  /* The same edge, inverted, so the arriving page is uncovered from the bottom. */
+  -webkit-mask-image: linear-gradient(
+    0deg,
+    #000 calc(100% * var(--vt-wipe)),
+    transparent calc(100% * var(--vt-wipe))
+  );
+  mask-image: linear-gradient(
+    0deg,
+    #000 calc(100% * var(--vt-wipe)),
+    transparent calc(100% * var(--vt-wipe))
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* The custom cursor is drawn in the page, so it would be captured into the
+   outgoing snapshot and left hanging in mid-air for a second and a half. */
+html[data-page-transition="true"] .site-cursor {
+  opacity: 0 !important;
 }
 
 @layer components {

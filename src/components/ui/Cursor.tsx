@@ -80,7 +80,7 @@ export function Cursor({ variant = "ring" }: { variant?: CursorVariant }) {
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-[100] hidden md:block"
+      className="site-cursor pointer-events-none fixed inset-0 z-[100] hidden md:block"
       style={{ opacity: visible ? 1 : 0, transition: "opacity .25s" }}
       aria-hidden="true"
     >

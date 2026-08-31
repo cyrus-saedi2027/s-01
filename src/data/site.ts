@@ -267,11 +267,11 @@ export const awards = [
 ];
 
 export const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "About Me", href: "#about" },
-  { label: "Projects", href: "#projects" },
-  { label: "Playground", href: "#process" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/" },
+  { label: "About Me", href: "/about" },
+  { label: "Projects", href: "/#projects" },
+  { label: "Playground", href: "/#process" },
+  { label: "Contact", href: "/#contact" },
 ];
 export const socials = [
   { label: "Instagram", href: "#" },
@@ -295,3 +295,118 @@ export const gallery = [
   "/art/tile-08.svg",
   "/art/tile-09.svg",
 ];
+
+/* ---------------------------------------------------------------------------
+ * /about
+ * ------------------------------------------------------------------------- */
+
+export const aboutPage = {
+  /** Set edge to edge as one word, scaled to the shell width. */
+  title: "About",
+  lead: "Over 8 years of experience, continuously pushing the boundaries of design and development.",
+  secondary:
+    "Enthusiastic about crafting seamless experiences that combine ideas, visuals, design, and development.",
+  portrait: {
+    src: "/art/about-portrait.svg",
+    alt: "A figure in three-quarter profile, dark against a hot orange field, with a cold highlight along the lit edge",
+  },
+  avatar: {
+    src: "/art/about-avatar.svg",
+    alt: "Portrait of Zayla Monroe",
+  },
+  statement:
+    "I focus on understanding your goals to create a visually stunning, user-friendly website that performs flawlessly. By combining creative design with cutting-edge technology, I deliver results that make an impact from day one.",
+};
+
+/**
+ * The five-card ledger under the statement.
+ *
+ * `span` is in columns of a four-column grid, which is what puts the first
+ * card and the two closing cards across two columns each and leaves the
+ * middle pair single-width — the arrangement the reference uses.
+ */
+export type AboutFigure = {
+  index: string;
+  span: 1 | 2;
+  /** Counts up from zero when the card comes into view. */
+  value: number;
+  suffix: string;
+  label: string;
+  /** The one card that carries the accent gradient instead of the dark fill. */
+  feature?: boolean;
+};
+
+export type AboutNote = {
+  index: string;
+  span: 1 | 2;
+  title: string;
+  body: string;
+};
+
+export const aboutFigures: AboutFigure[] = [
+  { index: "/ 01", span: 2, value: 95, suffix: "+", label: "Projects delivered", feature: true },
+  { index: "/ 02", span: 1, value: 100, suffix: "+", label: "Happy clients" },
+  { index: "/ 03", span: 1, value: 80, suffix: "+", label: "Award recognitions" },
+];
+
+export const aboutNotes: AboutNote[] = [
+  {
+    index: "/ 04",
+    span: 2,
+    title: "End-to-end execution",
+    body: "From idea to launch, I handle everything from branding and design to scalable development.",
+  },
+  {
+    index: "/ 05",
+    span: 2,
+    title: "Trusted by visionaries",
+    body: "I've been chosen by founders, agencies and creative teams who value bold, high-performing digital experiences.",
+  },
+];
+
+export const experience = {
+  eyebrow: "where i've worked",
+  heading: "Shaped by Experience",
+  years: "2017 — 2025",
+  roles: [
+    {
+      period: "2024 — Current",
+      company: "NovaOne",
+      role: "Lead Product Designer",
+      blurb:
+        "Directed UI/UX for a SaaS suite, leading strategy, design systems and the handover between product and engineering.",
+    },
+    {
+      period: "2021 — 2023",
+      company: "PixelRise Studio",
+      role: "UI/UX Designer",
+      blurb:
+        "Built responsive sites and brand systems for commerce clients, with a strong bias toward clean layout and legible user flows.",
+    },
+    {
+      period: "2019 — 2021",
+      company: "Freelance",
+      role: "Web Designer & Developer",
+      blurb:
+        "Worked directly with startups and independent makers, taking ideas through to custom-built sites and the visual language around them.",
+    },
+    {
+      period: "2017 — 2019",
+      company: "MotionGrid Agency",
+      role: "Junior Designer",
+      blurb:
+        "Assisted on interface design, prototyping and asset production across branding and mobile work for early-stage teams.",
+    },
+  ],
+};
+
+/** Heading block above the recognition ledger on /about. */
+export const honors = {
+  eyebrow: "i've got featured",
+  heading: "Awards & Honors",
+  years: "2017 — 2025",
+  plate: {
+    src: "/art/about-honors.svg",
+    alt: "The same figure lit from behind, framed for the recognition ledger",
+  },
+};

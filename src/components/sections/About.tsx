@@ -65,7 +65,7 @@ export function About() {
           </div>
 
           <Reveal delay={0.15} className="shrink-0">
-            <CircleTextButton text="MORE·ABOUT·ME·MORE·ABOUT·ME·" href="#contact" />
+            <CircleTextButton text="MORE·ABOUT·ME·MORE·ABOUT·ME·" href="/about" />
           </Reveal>
         </div>
 
