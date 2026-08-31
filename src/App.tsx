@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
-import {
-  BrowserRouter,
-  HashRouter,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { HashRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { Preloader } from "./components/ui/Preloader";
 import { Cursor, type CursorVariant } from "./components/ui/Cursor";
@@ -35,13 +28,17 @@ const CURSOR_VARIANT: CursorVariant = "ring";
 const ROUTES = ["/", "/about"];
 
 /**
- * Opened straight from disk there is no server to resolve `/about`, so the
- * single-file build falls back to hash routing. Everywhere else the URLs stay
- * clean.
+ * Routes live in the hash.
+ *
+ * Path routing needs the host to answer `/about` with the same document, and
+ * nothing this site ships to does: not the single file opened from disk, not
+ * the published page, not a static bucket without a rewrite rule. On all of
+ * them a pushed `/about` lands on a URL the host does not own and the route
+ * never renders — which is exactly what went wrong. The hash is carried by the
+ * document itself, so it works the same everywhere, at the cost of a `#` in
+ * the address bar. Swap this for BrowserRouter only alongside a server rewrite.
  */
-const Router = typeof window !== "undefined" && window.location.protocol === "file:"
-  ? HashRouter
-  : BrowserRouter;
+const Router = HashRouter;
 
 export default function App() {
   return (
