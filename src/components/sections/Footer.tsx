@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Marquee } from "../ui/Marquee";
 import { Reveal } from "../ui/Reveal";
 import { HoverStaggerLabel } from "../ui/AnimatedText";
 import { identity, navLinks, socials } from "@/data/site";
@@ -85,20 +84,6 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Oversized closing wordmark */}
-      <div className="border-t border-hair py-8 md:py-12">
-        <Marquee duration={40}>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <span
-              key={i}
-              className="flex select-none items-center gap-8 whitespace-nowrap px-8 text-[clamp(3rem,11vw,12.5rem)] font-medium leading-none tracking-tighter text-paper/[0.09]"
-            >
-              {identity.name}
-              <span className="text-accent/30">—</span>
-            </span>
-          ))}
-        </Marquee>
-      </div>
     </footer>
   );
 }

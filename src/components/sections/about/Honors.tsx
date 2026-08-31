@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { Reveal } from "@/components/ui/Reveal";
+import { ZoomPlate } from "@/components/ui/ZoomPlate";
 import { awards, honors } from "@/data/site";
 import { SectionHead } from "./Experience";
 
@@ -7,8 +9,10 @@ import { SectionHead } from "./Experience";
  * list runs down the right, organisation and citations side by side.
  */
 export function Honors() {
+  const ref = useRef<HTMLElement>(null);
+
   return (
-    <section className="relative py-20 md:py-28">
+    <section ref={ref} className="relative py-20 md:py-28">
       <div className="shell">
         <SectionHead
           eyebrow={honors.eyebrow}
@@ -18,15 +22,12 @@ export function Honors() {
 
         <div className="mt-14 grid gap-12 md:mt-20 lg:grid-cols-[minmax(0,30rem)_1fr] lg:gap-16">
           <Reveal className="lg:sticky lg:top-28 lg:self-start">
-            <div className="overflow-hidden rounded-[10px]">
-              <img
-                src={honors.plate.src}
-                alt={honors.plate.alt}
-                className="aspect-[490/590] w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
+            <ZoomPlate
+              src={honors.plate.src}
+              alt={honors.plate.alt}
+              track={ref}
+              className="aspect-[490/590] w-full rounded-[10px]"
+            />
           </Reveal>
 
           <div>

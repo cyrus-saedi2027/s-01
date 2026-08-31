@@ -1,23 +1,21 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 import { FitText } from "@/components/ui/FitText";
 import { Reveal } from "@/components/ui/Reveal";
+import { RisingText } from "@/components/ui/RisingText";
+import { ZoomPlate } from "@/components/ui/ZoomPlate";
 import { aboutPage } from "@/data/site";
 
 /**
  * The page opener: the word ABOUT set edge to edge in the accent gradient,
  * the two-part standfirst beneath it, and the portrait plate alongside.
  *
- * The plate drifts a little slower than the page, which is what separates it
- * from the copy column as you scroll rather than the two moving as one block.
+ * The standfirst rises character by character, the same way the pull quote
+ * further down does, so the two blocks of oversized type on this page read as
+ * one idea rather than two different treatments.
  */
 export function Intro() {
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const plateY = useTransform(scrollYProgress, [0, 1], ["0%", "-12%"]);
-
   return (
-    <section ref={ref} className="relative pt-[calc(var(--shell-x)+3.5rem)]">
+    <section className="relative pt-[calc(var(--shell-x)+3.5rem)]">
       <div className="shell">
         <motion.div
           initial={{ opacity: 0, y: 26 }}
@@ -38,36 +36,29 @@ export function Intro() {
 
         <div className="mt-10 grid gap-10 md:mt-14 lg:grid-cols-2 lg:gap-14">
           <div className="flex flex-col justify-start">
-            <Reveal delay={0.12}>
-              <h2 className="max-w-[22ch] text-[clamp(1.6rem,3.05vw,2.75rem)] font-semibold uppercase leading-[1] tracking-tight">
-                {aboutPage.lead}
-              </h2>
-            </Reveal>
+            <h2 className="max-w-[22ch] text-[clamp(1.6rem,3.05vw,2.75rem)] font-semibold uppercase leading-[1] tracking-tight">
+              <RisingText text={aboutPage.lead} />
+            </h2>
 
-            <Reveal delay={0.2}>
-              <p className="mt-7 max-w-[24ch] text-[clamp(1.6rem,3.05vw,2.75rem)] font-semibold uppercase leading-[1] tracking-tight text-white/35">
-                {aboutPage.secondary}
-              </p>
-            </Reveal>
+            <p className="mt-7 max-w-[24ch] text-[clamp(1.6rem,3.05vw,2.75rem)] font-semibold uppercase leading-[1] tracking-tight text-white/35">
+              <RisingText text={aboutPage.secondary} />
+            </p>
 
             <Reveal delay={0.3} className="mt-auto pt-12">
               <Signature />
             </Reveal>
           </div>
 
-          <motion.div style={{ y: plateY }} className="lg:justify-self-end lg:pl-6">
+          <div className="lg:justify-self-end lg:pl-6">
             <Reveal delay={0.18}>
-              <div className="overflow-hidden rounded-[10px]">
-                <img
-                  src={aboutPage.portrait.src}
-                  alt={aboutPage.portrait.alt}
-                  className="aspect-[675/770] w-full object-cover"
-                  loading="eager"
-                  decoding="async"
-                />
-              </div>
+              <ZoomPlate
+                src={aboutPage.portrait.src}
+                alt={aboutPage.portrait.alt}
+                loading="eager"
+                className="aspect-[675/770] w-full rounded-[10px]"
+              />
             </Reveal>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

@@ -14,13 +14,23 @@
     @apply border-hair;
   }
 
-  /* The page ground is the accent, not black.
-     It is never seen while a page is at rest — the shell paints black over the
+  /* The page ground is the site's accent gradient, not black.
+     It is never seen while a page is at rest — the body paints black over the
      whole document — but it is what the page-to-page wipe uncovers between the
      old page leaving and the new one arriving, and what the rubber band shows
-     when you overscroll. The reference carries the same red on its body. */
+     when you overscroll.
+
+     `fixed` sizes the gradient to the viewport. A root background is otherwise
+     laid out over the whole document, so on a page several screens tall the
+     wipe would uncover one flat slice of it rather than the ramp. */
   html {
     background-color: theme("colors.accent.DEFAULT");
+    background-image: linear-gradient(
+      134deg,
+      theme("colors.accent.DEFAULT") 0%,
+      theme("colors.accent.warm") 100%
+    );
+    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: auto;
@@ -122,6 +132,20 @@
     transform: translateY(0);
     --vt-wipe: 1;
   }
+}
+
+/* What shows between the two pages.
+   The page ground below would otherwise be the thing uncovered, but the
+   transition tree is painted over the canvas and only the root's background
+   *colour* survives that — the gradient does not — so the ramp is painted here,
+   on the root of the transition tree, where it is unambiguously behind both
+   snapshots and sized to the viewport. */
+::view-transition {
+  background: linear-gradient(
+    134deg,
+    theme("colors.accent.DEFAULT") 0%,
+    theme("colors.accent.warm") 100%
+  );
 }
 
 ::view-transition-old(root),

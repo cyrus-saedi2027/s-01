@@ -1,8 +1,6 @@
-import { motion } from "framer-motion";
 import { Reveal } from "@/components/ui/Reveal";
+import { RisingText } from "@/components/ui/RisingText";
 import { aboutPage, identity } from "@/data/site";
-
-const EASE = [0.22, 1, 0.36, 1] as const;
 
 /**
  * The pull quote: an attribution card on the left, an oversized quote mark,
@@ -46,51 +44,10 @@ export function Statement() {
           </Reveal>
 
           <p className="mt-8 text-[clamp(1.6rem,3.05vw,2.75rem)] font-semibold uppercase leading-[1] tracking-tight md:mt-10">
-            <RisingChars text={aboutPage.statement} />
+            <RisingText text={aboutPage.statement} />
           </p>
         </blockquote>
       </div>
     </section>
-  );
-}
-
-/**
- * Per-character rise.
- *
- * Words stay whole so the line still breaks on spaces, and each character is
- * an inline-block inside it — splitting on characters alone would let a word
- * break mid-way across a line end.
- */
-function RisingChars({ text }: { text: string }) {
-  let i = 0;
-  return (
-    <motion.span
-      className="inline"
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
-    >
-      {text.split(" ").map((word, wi) => (
-        <span key={wi} className="inline-block whitespace-nowrap">
-          {[...word].map((ch, ci) => {
-            const delay = i++ * 0.012;
-            return (
-              <motion.span
-                key={ci}
-                className="inline-block will-change-transform"
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE, delay } },
-                }}
-              >
-                {ch}
-              </motion.span>
-            );
-          })}
-          {/* A real space, so the browser can still break the line here. */}
-          <span className="inline-block">&nbsp;</span>
-        </span>
-      ))}
-    </motion.span>
   );
 }

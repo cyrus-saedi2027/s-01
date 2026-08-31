@@ -1,33 +1,17 @@
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
 import { Reveal, MaskLine, RevealGroup, RevealItem } from "../ui/Reveal";
+import { ZoomPlate } from "../ui/ZoomPlate";
 import { awards, accolade } from "@/data/site";
 import { MarqueeLabel } from "../ui/MarqueeLabel";
 
-/** How far past its frame the plate starts, before scroll pulls it back. */
-const START_SCALE = 1.7;
-
 /**
  * Recognition. An oversized masthead, then the ledger of organisations beside a
- * plate that starts cropped and pulls back to full as the section rises.
- *
- * The pull-back is timed against when the plate is actually in frame, not
- * against the section's arrival. Ending it at `start start` — one viewport of
- * scroll — put the plate at full size slightly *before* its bottom edge had
- * cleared the screen, so the whole pull-back happened while it was still cut
- * off and there was nothing left to watch by the time you could see all of it.
- * Ending at the section's foot three quarters down the screen spends the last
- * stretch of it, 1.15 back to 1.0, exactly over the window where the seal is
- * wholly visible. After that it holds: `useTransform` clamps at the ends of its
- * range, so nothing extra is needed to stop it.
+ * plate that starts cropped and pulls back to full as the section rises. The
+ * pull-back itself lives in ZoomPlate, clocked off this section rather than the
+ * plate, which is pinned and so barely moves on its own.
  */
 export function Awards() {
   const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end 75%"],
-  });
-  const scale = useTransform(scrollYProgress, [0, 1], [START_SCALE, 1]);
 
   return (
     <section id="awards" ref={ref} className="relative py-16 md:py-20">
@@ -51,15 +35,12 @@ export function Awards() {
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <div className="aspect-[8/9] overflow-hidden rounded-xl border border-hair bg-surface">
-              <motion.img
-                src={accolade.src}
-                alt={accolade.alt}
-                loading="lazy"
-                style={{ scale }}
-                className="h-full w-full object-cover will-change-transform"
-              />
-            </div>
+            <ZoomPlate
+              src={accolade.src}
+              alt={accolade.alt}
+              track={ref}
+              className="aspect-[8/9] rounded-xl border border-hair bg-surface"
+            />
           </div>
 
           <RevealGroup className="flex flex-col lg:self-center" stagger={0.09}>

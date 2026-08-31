@@ -10,6 +10,7 @@ import { Header } from "./components/Header";
 import { MenuOverlay } from "./components/MenuOverlay";
 import { BookingDialog } from "./components/sections/Booking";
 import { Footer } from "./components/sections/Footer";
+import { ClosingMark } from "./components/sections/ClosingMark";
 
 import Home from "./pages/Home";
 import AboutPage from "./pages/AboutPage";
@@ -142,7 +143,7 @@ function Shell() {
   }, [location.pathname, location.hash]);
 
   return (
-    <div id="top" className="grain relative min-h-screen bg-ink text-paper">
+    <div id="top" className="grain relative min-h-screen text-paper">
       <Preloader onDone={() => setReady(true)} />
       <Cursor variant={CURSOR_VARIANT} />
 
@@ -160,14 +161,21 @@ function Shell() {
       <MenuOverlay open={menuOpen} onClose={() => setMenuOpen(false)} />
       <BookingDialog open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
-      <Routes>
-        <Route path="/" element={<Home ready={ready} onBook={openBooking} />} />
-        <Route path="/about" element={<AboutPage onBook={openBooking} />} />
-        {/* Anything unrecognised falls back to the home page. */}
-        <Route path="*" element={<Home ready={ready} onBook={openBooking} />} />
-      </Routes>
+      {/* The page body is opaque and rides above the closing wordmark, which
+          is pinned to the bottom of the viewport behind it. Scrolling to the
+          end slides this block up off the strip and uncovers it. */}
+      <div className="relative z-10 bg-ink">
+        <Routes>
+          <Route path="/" element={<Home ready={ready} onBook={openBooking} />} />
+          <Route path="/about" element={<AboutPage onBook={openBooking} />} />
+          {/* Anything unrecognised falls back to the home page. */}
+          <Route path="*" element={<Home ready={ready} onBook={openBooking} />} />
+        </Routes>
 
-      <Footer />
+        <Footer />
+      </div>
+
+      <ClosingMark />
     </div>
   );
 }
