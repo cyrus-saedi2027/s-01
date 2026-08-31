@@ -56,10 +56,15 @@ function Shell() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Inertial wheel scrolling, enabled once the curtain has lifted. It stays on
-  // while the menu is up: the panel is fixed, so the page reads normally as it
-  // scrolls past behind it.
-  useSmoothScroll(ready);
+  // Inertial wheel scrolling. It stays on while the menu is up: the panel is
+  // fixed, so the page reads normally as it scrolls past behind it.
+  //
+  // Set up while the preloader is still covering the page rather than at the
+  // moment it lifts. Mounting costs a forced layout of the whole document —
+  // ~35ms on the home page — and behind the curtain nothing else is competing
+  // for that frame, whereas the lift itself is the busiest frame on the page.
+  // Wheel events are ignored while the scroll is locked, so nothing moves early.
+  useSmoothScroll(true);
 
   const openBooking = useCallback(() => setBookingOpen(true), []);
 

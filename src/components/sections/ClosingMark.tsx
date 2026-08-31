@@ -64,7 +64,7 @@ export function ClosingMark() {
             {Array.from({ length: 4 }).map((_, i) => (
               <span
                 key={i}
-                className="flex select-none items-center gap-8 whitespace-nowrap px-8 text-[clamp(3rem,11vw,12.5rem)] font-medium leading-none tracking-tighter text-ink"
+                className="flex select-none items-center gap-8 whitespace-nowrap px-8 text-[clamp(3rem,11vw,12.5rem)] font-extrabold leading-none tracking-tighter text-ink"
               >
                 {identity.name}
                 <span aria-hidden="true">—</span>

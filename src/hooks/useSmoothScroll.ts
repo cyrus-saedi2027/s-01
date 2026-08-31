@@ -22,9 +22,17 @@ export function useSmoothScroll(enabled = true) {
     // every tick made the page pay for a full layout per wheel event, which is
     // felt most over a tall `position: sticky` subtree. A ResizeObserver on the
     // root keeps the number honest as sections reveal and images settle.
-    let limit = document.documentElement.scrollHeight - window.innerHeight;
+    //
+    // The first value comes from that observer rather than from a read here.
+    // This hook is enabled the moment the preloader finishes lifting, and on a
+    // document this tall the read costs ~35ms — landing on the one frame where
+    // the curtain is clearing and the hero is starting to move, which showed as
+    // a stutter. The observer reports on the next frame regardless, so reading
+    // it here only ever bought a single frame of accuracy.
+    let limit = Number.POSITIVE_INFINITY;
     const measure = () => {
       limit = document.documentElement.scrollHeight - window.innerHeight;
+      target = Math.max(0, Math.min(limit, target));
     };
     const ro = new ResizeObserver(measure);
     ro.observe(document.documentElement);
@@ -63,20 +71,15 @@ export function useSmoothScroll(enabled = true) {
       }
     };
 
-    const onResize = () => {
-      measure();
-      target = Math.max(0, Math.min(limit, target));
-    };
-
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", measure);
     return () => {
       ro.disconnect();
       cancelAnimationFrame(frame);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", measure);
     };
   }, [enabled]);
 }

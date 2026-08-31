@@ -14,23 +14,14 @@
     @apply border-hair;
   }
 
-  /* The page ground is the site's accent gradient, not black.
-     It is never seen while a page is at rest — the body paints black over the
-     whole document — but it is what the page-to-page wipe uncovers between the
-     old page leaving and the new one arriving, and what the rubber band shows
-     when you overscroll.
-
-     `fixed` sizes the gradient to the viewport. A root background is otherwise
-     laid out over the whole document, so on a page several screens tall the
-     wipe would uncover one flat slice of it rather than the ramp. */
+  /* The page ground stays black.
+     It carried the accent ramp for a while, so that the page-to-page wipe would
+     uncover it — but the ground is also what is on screen from the very first
+     paint, well before React has mounted anything over it, and that showed as
+     half a second of full-bleed gradient every time the site was opened. The
+     ramp belongs to the wipe alone, so it lives on ::view-transition now. */
   html {
-    background-color: theme("colors.accent.DEFAULT");
-    background-image: linear-gradient(
-      134deg,
-      theme("colors.accent.DEFAULT") 0%,
-      theme("colors.accent.warm") 100%
-    );
-    background-attachment: fixed;
+    background-color: theme("colors.ink");
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: auto;

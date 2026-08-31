@@ -12,15 +12,25 @@ const LETTERS = ["Z", "A", "Y", "L", "A"];
 export function Preloader({ onDone }: { onDone: () => void }) {
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(true);
-  const [gone, setGone] = useState(false);
+  const [released, setReleased] = useState(false);
 
-  // Balanced against this effect rather than against `finish`, so a remount
-  // (React's development double-invoke) cannot leave the page locked.
+  /**
+   * Balanced against this effect rather than against `finish`, so a remount
+   * (React's development double-invoke) cannot leave the page locked.
+   *
+   * It releases when the counter lands, not when the curtain has finished
+   * lifting. Unlocking means taking `overflow: hidden` off the root, which
+   * re-lays out the whole document — 85ms on the home page — and doing that as
+   * the curtain cleared put a stutter on the first frames of the page proper.
+   * Released here it lands in the still beat before the lift, under a curtain
+   * that is still opaque and not yet moving, where nothing can show. Scrolling
+   * in that window is harmless: `finish` returns the page to the top anyway.
+   */
   useEffect(() => {
-    if (gone) return;
+    if (released) return;
     lockScroll();
     return unlockScroll;
-  }, [gone]);
+  }, [released]);
 
   useEffect(() => {
     const started = performance.now();
@@ -34,6 +44,9 @@ export function Preloader({ onDone }: { onDone: () => void }) {
       if (t < 1) {
         frame = requestAnimationFrame(tick);
       } else {
+        // Release the scroll here, in the beat before the lift, so the relayout
+        // that costs happens while the curtain is still still.
+        setReleased(true);
         window.setTimeout(() => setOpen(false), 320);
       }
     };
@@ -42,7 +55,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
   }, []);
 
   const finish = () => {
-    setGone(true);
+    // Whatever happened while the curtain was up, the site opens at the top.
     window.scrollTo(0, 0);
     onDone();
   };

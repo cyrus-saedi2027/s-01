@@ -12,6 +12,12 @@
     <meta property="og:image" content="/art/og.svg" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/art/favicon.svg" type="image/svg+xml" />
+    <!-- The stylesheet is render-blocking, so this is belt and braces: it keeps
+         the very first frame black rather than the browser's default white,
+         which is what the page settles on anyway. -->
+    <style>
+      html { background: #000; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
