@@ -12,14 +12,17 @@ const EASE = [0.22, 1, 0.36, 1] as const;
  *
  * The plates deliberately run past the shell's margin — they are wider than
  * their column and pulled outward — which is what makes the column of text
- * read as the still thing and the work as the thing passing by. The page's own
- * `overflow-x: hidden` on the body keeps that from adding a scrollbar.
+ * read as the still thing and the work as the thing passing by.
+ *
+ * That overhang is clipped here, on the section. `overflow-x: hidden` on the
+ * body does not cover it: the document element still grows, which measured as
+ * 51px of horizontal overflow on the page. And `clip` rather than `hidden`,
+ * because `hidden` on one axis forces the other to `auto` — that would make
+ * this a scroll container and cost the page its ability to hold anything
+ * sticky inside.
  */
 export function ProjectIndex() {
   return (
-    // `clip` rather than `hidden`: hidden on one axis forces the other to
-    // `auto`, which would make this a scroll container and cost the page its
-    // ability to hold anything sticky inside.
     <section id="projects" className="relative overflow-x-clip py-20 md:py-28">
       <div className="flex flex-col gap-16 md:gap-24 lg:gap-8">
         {projects.map((p, i) => (
