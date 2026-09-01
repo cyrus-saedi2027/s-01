@@ -86,6 +86,33 @@ export const projects: Project[] = [
     art: "/art/work-04.svg",
     blurb: "A scheduling product reduced to the three screens people actually use.",
   },
+  {
+    index: "/ 05",
+    title: "Tallowfield",
+    cover: "/art/cover-05.svg",
+    tags: "Branding, UI/UX Design, Web Development",
+    year: "2023",
+    art: "/art/work-01.svg",
+    blurb: "A seasonal kitchen brought online without losing the handwriting.",
+  },
+  {
+    index: "/ 06",
+    title: "Mesa",
+    cover: "/art/cover-06.svg",
+    tags: "Website Development",
+    year: "2023",
+    art: "/art/work-02.svg",
+    blurb: "A documentation site that loads in a blink on a bad connection.",
+  },
+  {
+    index: "/ 07",
+    title: "Lune",
+    cover: "/art/cover-07.svg",
+    tags: "Branding, Packaging Design",
+    year: "2022",
+    art: "/art/work-03.svg",
+    blurb: "Packaging for a small-batch perfumer, built around one folded form.",
+  },
 ];
 
 export const solutions = [
@@ -269,8 +296,8 @@ export const awards = [
 export const navLinks = [
   { label: "Home", href: "/" },
   { label: "About Me", href: "/about" },
-  { label: "Projects", href: "/#projects" },
-  { label: "Playground", href: "/#process" },
+  { label: "Projects", href: "/projects" },
+  { label: "Playground", href: "/playground" },
   { label: "Contact", href: "/#contact" },
 ];
 export const socials = [
@@ -410,3 +437,48 @@ export const honors = {
     alt: "The same figure lit from behind, framed for the recognition ledger",
   },
 };
+
+
+/* ---------------------------------------------------------------------------
+ * /projects and /playground
+ * ------------------------------------------------------------------------- */
+
+export const projectsPage = {
+  /** Set edge to edge as one word, like the About masthead. */
+  title: "Projects",
+  intro:
+    "Selected work from the last few years — brand systems, interfaces, and the front-end that carries them.",
+};
+
+export const playgroundPage = {
+  title: "Playground",
+  intro: "Off-cuts, studies, and things made for their own sake.",
+};
+
+/**
+ * The playground wall.
+ *
+ * `span` is in rows of the masonry grid, which is what gives the columns their
+ * stagger: a tile's height comes from its row span rather than from the
+ * artwork, so the wall keeps its rhythm whatever aspect ratio the file has.
+ * `wide` takes two columns.
+ */
+export type WallTile = { src: string; alt: string; span: number; wide?: boolean };
+
+export const playgroundWall: WallTile[] = [
+  { src: "/art/tile-01.svg", alt: "Study: a banded field over a dark ground", span: 26 },
+  { src: "/art/tile-02.svg", alt: "Study: stacked arcs in vermilion", span: 44 },
+  { src: "/art/tile-03.svg", alt: "Study: a single swept curve", span: 38 },
+  { src: "/art/tile-04.svg", alt: "Study: concentric rings, off centre", span: 26 },
+  { src: "/art/showcase-01.svg", alt: "Plate: a bloom against a near-black ground", span: 60, wide: true },
+  { src: "/art/tile-05.svg", alt: "Study: a diagonal rule and a soft bloom", span: 26 },
+  { src: "/art/tile-06.svg", alt: "Study: a grid dissolving at one corner", span: 26 },
+  { src: "/art/showcase-02.svg", alt: "Plate: two masses meeting on a seam", span: 32 },
+  { src: "/art/tile-07.svg", alt: "Study: a horizon with an ember above it", span: 32 },
+  { src: "/art/showcase-03.svg", alt: "Plate: a lit edge across the frame", span: 46, wide: true },
+  { src: "/art/tile-08.svg", alt: "Study: vertical bands, unevenly spaced", span: 40 },
+  { src: "/art/tile-09.svg", alt: "Study: a soft disc low in the frame", span: 30 },
+  { src: "/art/showcase-04.svg", alt: "Plate: overlapping planes in ember", span: 34 },
+  { src: "/art/showcase-05.svg", alt: "Plate: a long sweep across the ground", span: 28 },
+  { src: "/art/showcase-06.svg", alt: "Plate: scattered marks over a warm field", span: 42 },
+];

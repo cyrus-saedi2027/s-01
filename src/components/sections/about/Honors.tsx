@@ -20,8 +20,13 @@ export function Honors() {
           years={honors.years}
         />
 
+        {/* The plate travels with the page. Pinning it needs the ledger beside
+            it to be a good deal taller; it is only ~80px taller, so a sticky
+            plate caught for a moment and then lurched back into the scroll —
+            which is what read as the image suddenly dropping. The reference
+            does not pin it either. */}
         <div className="mt-14 grid gap-12 md:mt-20 lg:grid-cols-[minmax(0,30rem)_1fr] lg:gap-16">
-          <Reveal className="lg:sticky lg:top-28 lg:self-start">
+          <Reveal className="lg:self-start">
             <ZoomPlate
               src={honors.plate.src}
               alt={honors.plate.alt}

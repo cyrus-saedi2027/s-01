@@ -14,6 +14,8 @@ import { ClosingMark } from "./components/sections/ClosingMark";
 
 import Home from "./pages/Home";
 import AboutPage from "./pages/AboutPage";
+import ProjectsPage from "./pages/ProjectsPage";
+import PlaygroundPage from "./pages/PlaygroundPage";
 
 import { useSmoothScroll } from "./hooks/useSmoothScroll";
 import { withPageTransition } from "./lib/pageTransition";
@@ -26,7 +28,7 @@ import { withPageTransition } from "./lib/pageTransition";
 const CURSOR_VARIANT: CursorVariant = "ring";
 
 /** Paths the in-page router owns. Anything else is left to the browser. */
-const ROUTES = ["/", "/about"];
+const ROUTES = ["/", "/about", "/projects", "/playground"];
 
 /**
  * Routes live in the hash.
@@ -173,6 +175,8 @@ function Shell() {
         <Routes>
           <Route path="/" element={<Home ready={ready} onBook={openBooking} />} />
           <Route path="/about" element={<AboutPage onBook={openBooking} />} />
+          <Route path="/projects" element={<ProjectsPage onBook={openBooking} />} />
+          <Route path="/playground" element={<PlaygroundPage onBook={openBooking} />} />
           {/* Anything unrecognised falls back to the home page. */}
           <Route path="*" element={<Home ready={ready} onBook={openBooking} />} />
         </Routes>

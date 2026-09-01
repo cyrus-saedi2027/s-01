@@ -204,9 +204,10 @@ const write = (name, w, h, motif, seed) => {
   write(`panel-${slug}.svg`, 600, 760, MOTIFS[[3, 1, 2, 5][i]], 1000 + i * 137);
 });
 
-// Works covers — wide.
-for (let i = 1; i <= 4; i++) {
-  write(`cover-0${i}.svg`, 1200, 800, MOTIFS[[0, 2, 4, 1][i - 1]], 2000 + i * 211);
+// Works covers — wide. Seven of them: four carry the feature rows on the home
+// page, and the projects index shows the whole set.
+for (let i = 1; i <= 7; i++) {
+  write(`cover-0${i}.svg`, 1200, 800, MOTIFS[[0, 2, 4, 1, 5, 3, 2][i - 1]], 2000 + i * 211);
 }
 
 // Gallery tiles — mixed aspect ratios.
