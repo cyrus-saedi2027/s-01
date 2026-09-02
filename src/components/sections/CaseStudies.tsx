@@ -5,6 +5,7 @@ import { MaskLine, Reveal } from "../ui/Reveal";
 import { MagneticButton } from "../ui/MagneticButton";
 import { FeatureRows } from "./FeatureRow";
 import { gallery, featuredProjects } from "@/data/site";
+import { useReducedMotion } from "@/hooks/useMediaQuery";
 
 /**
  * The long-form counterpart to the works index: a selection of projects gets a
@@ -59,11 +60,16 @@ function GalleryWall() {
     target: track,
     offset: ["start start", "end end"],
   });
-  const p = useSpring(scrollYProgress, { stiffness: 80, damping: 26, restDelta: 0.001 });
+  // As in FeatureRow: the spring keeps moving after the scroll stops, so under
+  // a reduced-motion preference the raw progress is read and the wall holds
+  // still at the size and offset it settles to.
+  const calm = useReducedMotion();
+  const smoothed = useSpring(scrollYProgress, { stiffness: 80, damping: 26, restDelta: 0.001 });
+  const p = calm ? scrollYProgress : smoothed;
 
-  const scale = useTransform(p, [0, 1], [1.5, 1]);
-  const outer = useTransform(p, [0, 1], [40, -40]);
-  const middle = useTransform(p, [0, 1], [-70, 90]);
+  const scale = useTransform(p, [0, 1], calm ? [1, 1] : [1.5, 1]);
+  const outer = useTransform(p, [0, 1], calm ? [0, 0] : [40, -40]);
+  const middle = useTransform(p, [0, 1], calm ? [0, 0] : [-70, 90]);
 
   // Four tiles per column keeps every column full at any offset.
   const columns = [

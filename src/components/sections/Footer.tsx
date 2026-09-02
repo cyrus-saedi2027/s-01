@@ -35,21 +35,27 @@ export function Footer() {
 
           {/* Sitemap */}
           <Reveal delay={0.08}>
-            <p className="mb-6 font-sans text-2xs uppercase tracking-wider text-dim">Sitemap</p>
-            <ul className="flex flex-col gap-3">
-              {navLinks.map((l) => (
-                <li key={l.label}>
-                  <a
-                    href={l.href}
-                    onMouseEnter={() => setHover(l.label)}
-                    onMouseLeave={() => setHover(null)}
-                    className="inline-flex font-sans text-sm font-medium uppercase tracking-wide transition-colors duration-300 hover:text-accent"
-                  >
-                    <HoverStaggerLabel text={l.label} active={hover === l.label} />
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <p id="footer-sitemap" className="mb-6 font-sans text-2xs uppercase tracking-wider text-dim">
+              Sitemap
+            </p>
+            {/* The only navigation landmark on a page with the menu closed —
+                without it the site has no nav at rest. */}
+            <nav aria-labelledby="footer-sitemap">
+              <ul className="flex flex-col gap-3">
+                {navLinks.map((l) => (
+                  <li key={l.label}>
+                    <a
+                      href={l.href}
+                      onMouseEnter={() => setHover(l.label)}
+                      onMouseLeave={() => setHover(null)}
+                      className="inline-flex font-sans text-sm font-medium uppercase tracking-wide transition-colors duration-300 hover:text-accent"
+                    >
+                      <HoverStaggerLabel text={l.label} active={hover === l.label} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </Reveal>
 
           {/* Socials */}

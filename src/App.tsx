@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
+import { MotionConfig } from "framer-motion";
 import { HashRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { Preloader } from "./components/ui/Preloader";
@@ -46,9 +47,17 @@ const Router = HashRouter;
 
 export default function App() {
   return (
-    <Router>
-      <Shell />
-    </Router>
+    // Framer drives its animations from JS, so the `prefers-reduced-motion`
+    // block in index.css — which only reaches CSS animations and transitions —
+    // never touched them: 36 elements still moved on a page with the
+    // preference set. `reducedMotion="user"` hands that decision to the OS for
+    // every motion component at once, keeping opacity fades and dropping the
+    // transforms that actually cause trouble.
+    <MotionConfig reducedMotion="user">
+      <Router>
+        <Shell />
+      </Router>
+    </MotionConfig>
   );
 }
 
@@ -96,12 +105,19 @@ function Shell() {
       const raw = link.getAttribute("href")!;
 
       // Same-page anchor.
+      //
+      // Anything starting with `#` is handled here and nowhere else, including
+      // a bare `#` and an id that is not on this page. Letting those fall
+      // through to the browser was a real bug: routes live in the hash, so the
+      // default action rewrote `#/contact` to `#` and the router, seeing no
+      // route, dropped the visitor back on the home page. A placeholder link
+      // now does what it looks like it does — nothing.
       if (raw.startsWith("#")) {
+        e.preventDefault();
         const id = raw.slice(1);
         if (!id) return;
         const target = id === "top" ? document.body : document.getElementById(id);
         if (!target) return;
-        e.preventDefault();
         window.scrollTo({
           top: id === "top" ? 0 : target.getBoundingClientRect().top + window.scrollY - 70,
           behavior: "smooth",

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { navLinks } from "@/data/site";
 import { GLASS_BLUR, GLASS_GRAIN, GLASS_GRAIN_OPACITY, GLASS_SATURATE } from "@/lib/glass";
@@ -23,12 +23,34 @@ export function MenuOverlay({
   onClose: () => void;
 }) {
   const [hovered, setHovered] = useState<number | null>(null);
+  const panel = useRef<HTMLElement>(null);
+  const restoreTo = useRef<Element | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  /**
+   * Send focus into the panel when it opens and hand it back on close.
+   *
+   * Not trapped: the panel is deliberately not modal — the page keeps scrolling
+   * behind it — so shutting the rest of the document out would misdescribe it.
+   * What matters is that a keyboard visitor who opens the menu starts inside it
+   * rather than on <body>, several tabs away from the thing they just opened.
+   */
+  useEffect(() => {
+    if (!open) return;
+    restoreTo.current = document.activeElement;
+    const frame = requestAnimationFrame(() => {
+      panel.current?.querySelector<HTMLAnchorElement>("a[href]")?.focus({ preventScroll: true });
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      (restoreTo.current as HTMLElement | null)?.focus?.({ preventScroll: true });
+    };
+  }, [open]);
 
   return (
     <AnimatePresence>
@@ -46,6 +68,7 @@ export function MenuOverlay({
           />
 
           <motion.nav
+            ref={panel}
             id="site-menu"
             className="fixed inset-x-0 top-0 z-[72] h-[min(56svh,560px)] overflow-hidden rounded-b-2xl border-b border-white/10 bg-[#0a0a0c]/55"
             style={{

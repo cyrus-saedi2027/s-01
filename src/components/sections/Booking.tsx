@@ -61,6 +61,22 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
     if (!open) return;
     restoreTo.current = document.activeElement;
     lockScroll();
+
+    // Focus has to be moved into the card, and not only for the reason it
+    // usually is. The Tab handler below wraps at the card's first and last
+    // focusable — but it can only recognise those once focus is already
+    // inside. Left on <body>, `activeElement` never matched an edge and Tab
+    // walked the whole page behind the dialog instead: 18 of 20 presses landed
+    // on links the visitor could not see.
+    const frame = requestAnimationFrame(() => {
+      const el = card.current;
+      if (!el) return;
+      const first = el.querySelector<HTMLElement>(
+        'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])'
+      );
+      (first ?? el).focus({ preventScroll: true });
+    });
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key !== "Tab") return;
@@ -78,6 +94,7 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
     };
     window.addEventListener("keydown", onKey);
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener("keydown", onKey);
       unlockScroll();
       // Plain focus() scrolls its target into view, which would move the page
@@ -129,6 +146,8 @@ export function BookingDialog({ open, onClose }: { open: boolean; onClose: () =>
             ref={card}
             role="dialog"
             aria-modal="true"
+            // Focusable as a last resort, for a card with nothing to focus.
+            tabIndex={-1}
             aria-label={`${booking.title} — pick a time`}
             initial={{ opacity: 0, y: 34, scale: 0.965 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1235,6 +1254,8 @@ function Confirmation({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<number>();
+  useEffect(() => () => window.clearTimeout(copyTimer.current), []);
   const end = slot + duration * 60000;
 
   const profiles = PLATFORMS.filter((p) => filled.links[p.key]);
@@ -1316,7 +1337,8 @@ function Confirmation({
               try {
                 await navigator.clipboard.writeText(copyText);
                 setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
+                window.clearTimeout(copyTimer.current);
+                copyTimer.current = window.setTimeout(() => setCopied(false), 2000);
               } catch {
                 setCopied(false);
               }

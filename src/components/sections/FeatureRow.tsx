@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { MagneticButton } from "../ui/MagneticButton";
 import type { Project } from "@/data/site";
+import { useReducedMotion } from "@/hooks/useMediaQuery";
 
 /**
  * Where the covers pivot from. `50% 180%` sits a little over one card-height
@@ -40,21 +41,34 @@ export function FeatureRow({
   index,
   flipped,
   href = "/projects",
+  headingLevel = 3,
 }: {
   project: Project;
   index: number;
   flipped: boolean;
   /** Where the row's button goes. The index has nowhere deeper to send you. */
   href?: string;
+  /**
+   * The home page runs these under an "In Detail" h2, so h3 is right there.
+   * The index has only its masthead above them, where an h3 would skip a
+   * level and leave a hole in the outline.
+   */
+  headingLevel?: 2 | 3;
 }) {
+  const Heading = `h${headingLevel}` as "h2" | "h3";
   const ref = useRef<HTMLDivElement>(null);
+  const calm = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "center center"],
   });
 
-  // Smoothing keeps the turn from tracking every scroll jitter.
-  const p = useSpring(scrollYProgress, { stiffness: 90, damping: 24, restDelta: 0.001 });
+  // Smoothing keeps the turn from tracking every scroll jitter. Under a
+  // reduced-motion preference the spring is the problem rather than the cure:
+  // it keeps easing after the visitor has stopped scrolling, which is motion
+  // they did not ask for. There, the raw progress is read straight.
+  const smoothed = useSpring(scrollYProgress, { stiffness: 90, damping: 24, restDelta: 0.001 });
+  const p = calm ? scrollYProgress : smoothed;
 
   // +1 when the cover sits on the right, -1 when it sits on the left, so each
   // row leans away from its own side.
@@ -69,10 +83,12 @@ export function FeatureRow({
   // curves back in.
   // Both land at SETTLE_AT rather than at the end of the range, so the card is
   // square a little before the row reaches the middle of the viewport.
-  const rotate = useTransform(p, [0, SETTLE_AT], [12 * dir, 0]);
-  const scale = useTransform(p, [0, SETTLE_AT], [0.94, 1]);
+  // Flattened under reduced motion: the row is drawn where it settles, so the
+  // page is still and only the fade is left.
+  const rotate = useTransform(p, [0, SETTLE_AT], calm ? [0, 0] : [12 * dir, 0]);
+  const scale = useTransform(p, [0, SETTLE_AT], calm ? [1, 1] : [0.94, 1]);
 
-  const textX = useTransform(p, [0, 1], [26 * -dir, 0]);
+  const textX = useTransform(p, [0, 1], calm ? [0, 0] : [26 * -dir, 0]);
   const textOpacity = useTransform(p, [0.15, 0.75], [0, 1]);
 
   return (
@@ -111,9 +127,9 @@ export function FeatureRow({
         <span className="font-sans text-2xs font-semibold uppercase tracking-wider text-accent">
           / {String(index + 1).padStart(2, "0")}
         </span>
-        <h3 className="mt-4 text-[clamp(2.25rem,6vw,5rem)] font-medium leading-none tracking-tighter">
+        <Heading className="mt-4 text-[clamp(2.25rem,6vw,5rem)] font-medium leading-none tracking-tighter">
           {project.title}
-        </h3>
+        </Heading>
         <p className="mt-4 font-sans text-2xs uppercase tracking-wider text-dim">
           {project.tags}
         </p>
@@ -139,9 +155,11 @@ export function FeatureRow({
 export function FeatureRows({
   items,
   href,
+  headingLevel,
 }: {
   items: Project[];
   href?: string;
+  headingLevel?: 2 | 3;
 }) {
   return (
     <div className="overflow-x-clip">
@@ -149,7 +167,14 @@ export function FeatureRows({
           the page edge — roughly half the usual margin. */}
       <div className="mx-auto flex w-full max-w-shell flex-col gap-[4.02rem] px-[clamp(0.75rem,1.9vw,2.25rem)] md:gap-[6.33rem]">
         {items.map((p, i) => (
-          <FeatureRow key={p.title} project={p} index={i} flipped={i % 2 === 1} href={href} />
+          <FeatureRow
+            key={p.title}
+            project={p}
+            index={i}
+            flipped={i % 2 === 1}
+            href={href}
+            headingLevel={headingLevel}
+          />
         ))}
       </div>
     </div>

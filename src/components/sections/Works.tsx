@@ -53,7 +53,6 @@ export function Works() {
               <ProjectRow
                 key={p.title}
                 project={p}
-                index={i}
                 desktop={desktop}
                 active={active === i}
                 onEnter={() => setActive(i)}
@@ -101,14 +100,12 @@ export function Works() {
 
 function ProjectRow({
   project,
-  index,
   desktop,
   active,
   onEnter,
   onLeave,
 }: {
   project: Project;
-  index: number;
   desktop: boolean;
   active: boolean;
   onEnter: () => void;

@@ -37,6 +37,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
     const DURATION = 1900;
 
     let frame = 0;
+    let close = 0;
     const tick = () => {
       const t = Math.min(1, (performance.now() - started) / DURATION);
       // Ease-out so the counter decelerates into 100.
@@ -47,11 +48,14 @@ export function Preloader({ onDone }: { onDone: () => void }) {
         // Release the scroll here, in the beat before the lift, so the relayout
         // that costs happens while the curtain is still still.
         setReleased(true);
-        window.setTimeout(() => setOpen(false), 320);
+        close = window.setTimeout(() => setOpen(false), 320);
       }
     };
     frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(close);
+    };
   }, []);
 
   const finish = () => {

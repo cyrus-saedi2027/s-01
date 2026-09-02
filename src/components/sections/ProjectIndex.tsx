@@ -14,7 +14,7 @@ import { projects } from "@/data/site";
 export function ProjectIndex() {
   return (
     <section id="projects" className="relative py-20 md:py-28">
-      <FeatureRows items={projects} href="#contact" />
+      <FeatureRows items={projects} href="#contact" headingLevel={2} />
     </section>
   );
 }

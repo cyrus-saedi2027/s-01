@@ -91,15 +91,6 @@ export function AnimatedHeadline({
   );
 }
 
-/** Same effect, taking a plain string. */
-export function AnimatedWords({
-  text,
-  ...rest
-}: { text: string } & Omit<Parameters<typeof AnimatedHeadline>[0], "words">) {
-  const words = text.split(" ").map((t) => ({ text: t, tone: "solid" as Tone }));
-  return <AnimatedHeadline words={words} {...rest} />;
-}
-
 /**
  * Label whose glyphs are staggered on hover — used on every button and nav item
  * in the reference, where each letter is its own animated element.
