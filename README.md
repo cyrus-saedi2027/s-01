@@ -16,7 +16,9 @@ npm run preview  # serve the built bundle
 
 ```
 src/
-  App.tsx                  page composition, scroll progress, anchor handling
+  App.tsx                  routing, page transition, scroll and anchor handling
+  pages/                   Home, AboutPage, ProjectsPage, PlaygroundPage,
+                           ContactPage — one composition each
   data/site.ts             all copy and content in one place
   hooks/
     useSmoothScroll.ts     lerp-based inertial wheel scrolling
@@ -38,9 +40,14 @@ src/
       Preloader.tsx        intro curtain with counter
     sections/              Hero, About, Works, CaseStudies, Solutions,
                            Process, Testimonials, Awards, CTA, Footer
+      FeatureRow.tsx       the project row shared by the home page's In Detail
+                           section and the projects index
+      Wall.tsx             the playground grid and its layout toggle
+      about/, contact/     the sections particular to those two pages
 scripts/
   generate-hero-art.mjs    draws the hero landscape
-  generate-artwork.mjs     draws panel, cover and gallery art
+  generate-artwork.mjs     draws panel, cover, gallery and playground art
+  generate-about-art.mjs   draws the About portrait, avatar and honors plate
   build-standalone.mjs     inlines everything into one HTML file
 public/
   art/                     procedurally generated SVG artwork

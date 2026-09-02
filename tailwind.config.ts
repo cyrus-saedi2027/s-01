@@ -63,6 +63,8 @@ export default {
       transitionTimingFunction: {
         soft: "cubic-bezier(0.22, 1, 0.36, 1)",
         swift: "cubic-bezier(0.65, 0, 0.35, 1)",
+        /* The curve the reference gives its buttons: a long, late settle. */
+        button: "cubic-bezier(0.625, 0.05, 0, 1)",
       },
       keyframes: {
         marquee: {

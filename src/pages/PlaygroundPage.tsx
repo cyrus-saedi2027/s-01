@@ -6,7 +6,7 @@ import { playgroundPage } from "@/data/site";
 export default function PlaygroundPage({ onBook }: { onBook: () => void }) {
   return (
     <main>
-      <PageMasthead title={playgroundPage.title} intro={playgroundPage.intro} />
+      <PageMasthead title={playgroundPage.title} />
       <Wall />
       <CTA onBook={onBook} />
     </main>

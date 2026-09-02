@@ -46,7 +46,7 @@ export function Header({
         {/* Contact is one of the menu's own entries, so it steps aside while
             the panel is open rather than sitting on top of it. */}
         <motion.a
-          href="#contact"
+          href="/contact"
           onMouseEnter={() => setHoverContact(true)}
           onMouseLeave={() => setHoverContact(false)}
           animate={{ opacity: menuOpen ? 0 : 1 }}

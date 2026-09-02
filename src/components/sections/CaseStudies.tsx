@@ -1,30 +1,17 @@
 import { useRef } from "react";
-import { motion, useScroll, useSpring, useTransform, type MotionValue } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { MarqueeLabel } from "../ui/MarqueeLabel";
 import { MaskLine, Reveal } from "../ui/Reveal";
 import { MagneticButton } from "../ui/MagneticButton";
-import { gallery, projects, type Project } from "@/data/site";
-
-const EASE = [0.22, 1, 0.36, 1] as const;
-
-/**
- * Where the covers pivot from. `50% 180%` sits a little over one card-height
- * below the centre, which is the radius of the arc they travel. Pull it toward
- * `50% 50%` to flatten the curve into a turn on the spot; push it further down
- * to make the sweep wider.
- */
-const ARC_PIVOT = "50% 180%";
+import { FeatureRows } from "./FeatureRow";
+import { gallery, featuredProjects } from "@/data/site";
 
 /**
- * Fraction of a row's scroll range at which its cover finishes straightening.
- * Below 1 the card settles early and then simply holds; at 1 it is still
- * unwinding as the row reaches the middle of the viewport.
- */
-const SETTLE_AT = 0.87;
-
-/**
- * The long-form counterpart to the works index: each project gets a full row,
- * then a gallery closes the section out.
+ * The long-form counterpart to the works index: a selection of projects gets a
+ * full row each, then a gallery closes the section out.
+ *
+ * Only the featured four appear here. The whole list lives on /projects, which
+ * is what the button at the top of the section opens.
  */
 export function CaseStudies() {
   return (
@@ -43,130 +30,15 @@ export function CaseStudies() {
             </h2>
           </div>
           <Reveal delay={0.2}>
-            <MagneticButton label="View all works" href="#projects" variant="outline" />
+            <MagneticButton label="View all works" href="/projects" variant="outline" />
           </Reveal>
         </div>
       </div>
 
-      {/* Clipping at viewport width rather than inside the shell lets a card
-          run past the page margin to the screen edge, which is where it starts
-          before sliding in. `clip` rather than `hidden`: `hidden` creates a
-          scroll container and would break the sticky gallery below. */}
-      <div className="overflow-x-clip">
-        {/* Narrower gutters than the site's shell, so the covers sit closer to
-            the page edge — roughly half the usual margin. */}
-        <div className="mx-auto flex w-full max-w-shell flex-col gap-[4.02rem] px-[clamp(0.75rem,1.9vw,2.25rem)] md:gap-[6.33rem]">
-          {projects.map((p, i) => (
-            <FeatureRow key={p.title} project={p} index={i} flipped={i % 2 === 1} />
-          ))}
-        </div>
-      </div>
+      <FeatureRows items={featuredProjects} />
 
       <GalleryWall />
     </section>
-  );
-}
-
-/**
- * One project row.
- *
- * The cover sweeps in along a shallow arc and lands square as the row reaches
- * the middle of the viewport, with the copy opposite running off the same
- * scroll range so the two resolve together.
- *
- * The arc comes from the pivot rather than from animating a path: putting the
- * transform origin well below the card means a single rotation carries its
- * centre along a circle of that radius, so the card curves into place and
- * unwinds its tilt in one motion. Nothing translates it — the travel is the
- * rotation. A nearer pivot flattens the curve, a further one deepens it.
- */
-function FeatureRow({
-  project,
-  index,
-  flipped,
-}: {
-  project: Project;
-  index: number;
-  flipped: boolean;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "center center"],
-  });
-
-  // Smoothing keeps the turn from tracking every scroll jitter.
-  const p = useSpring(scrollYProgress, { stiffness: 90, damping: 24, restDelta: 0.001 });
-
-  // +1 when the cover sits on the right, -1 when it sits on the left, so each
-  // row leans away from its own side.
-  const dir = flipped ? -1 : 1;
-
-  // CSS rotation runs clockwise, so a positive angle lifts the LEFT edge.
-  // A cover on the right therefore starts with its left edge raised, and one
-  // on the left starts with its right edge raised.
-  //
-  // With the pivot below the card, that same rotation also swings the card out
-  // along the arc — each cover enters from its own side of the layout and
-  // curves back in.
-  // Both land at SETTLE_AT rather than at the end of the range, so the card is
-  // square a little before the row reaches the middle of the viewport.
-  const rotate = useTransform(p, [0, SETTLE_AT], [12 * dir, 0]);
-  const scale = useTransform(p, [0, SETTLE_AT], [0.94, 1]);
-
-  const textX = useTransform(p, [0, 1], [26 * -dir, 0]);
-  const textOpacity = useTransform(p, [0.15, 0.75], [0, 1]);
-
-  return (
-    <div
-      ref={ref}
-      className={`grid items-center gap-10 lg:gap-14 ${
-        flipped
-          ? "lg:grid-cols-[1.28fr_1fr]"
-          : "lg:grid-cols-[1fr_1.28fr] lg:[&>*:first-child]:order-2"
-      }`}
-    >
-      {/* Cover */}
-      <motion.div
-        style={{ rotate, scale, transformOrigin: ARC_PIVOT }}
-        className="relative overflow-hidden rounded-xl will-change-transform"
-      >
-        <div className="aspect-[3/2] w-full overflow-hidden">
-          <img
-            src={project.cover}
-            alt={`${project.title} cover`}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10"
-        />
-      </motion.div>
-
-      {/* Copy */}
-      <motion.div
-        style={{ x: textX, opacity: textOpacity }}
-        className={`flex flex-col ${flipped ? "lg:items-end lg:text-right" : "lg:items-start lg:text-left"}`}
-      >
-        <span className="font-sans text-2xs font-semibold uppercase tracking-wider text-accent">
-          / {String(index + 1).padStart(2, "0")}
-        </span>
-        <h3 className="mt-4 text-[clamp(2.25rem,6vw,5rem)] font-medium leading-none tracking-tighter">
-          {project.title}
-        </h3>
-        <p className="mt-4 font-sans text-2xs uppercase tracking-wider text-dim">
-          {project.tags}
-        </p>
-        <p className="mt-5 max-w-sm font-sans text-sm leading-relaxed text-dim">
-          {project.blurb}
-        </p>
-        <div className="mt-8">
-          <MagneticButton label="View project" href="#projects" variant="accent" />
-        </div>
-      </motion.div>
-    </div>
   );
 }
 

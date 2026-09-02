@@ -15,6 +15,8 @@ export function MagneticButton({
   strength = 0.32,
   icon,
   onClick,
+  type,
+  disabled,
 }: {
   label: string;
   href?: string;
@@ -23,8 +25,11 @@ export function MagneticButton({
   strength?: number;
   icon?: ReactNode;
   onClick?: (e: React.MouseEvent) => void;
+  /** Set to make this a real form control rather than a link. */
+  type?: "submit" | "button";
+  disabled?: boolean;
 }) {
-  const ref = useRef<HTMLAnchorElement>(null);
+  const ref = useRef<HTMLAnchorElement & HTMLButtonElement>(null);
   const [hover, setHover] = useState(false);
 
   const mx = useMotionValue(0);
@@ -50,13 +55,17 @@ export function MagneticButton({
     variant === "solid"
       ? "bg-paper text-ink"
       : variant === "accent"
-        ? "bg-accent text-paper"
+        ? "text-paper"
         : "border border-hairStrong text-paper";
 
+  // A submit button has to be a <button> — an anchor cannot submit a form —
+  // but everything else about it is the same, so only the tag changes.
+  const Tag = type ? motion.button : motion.a;
+
   return (
-    <motion.a
+    <Tag
       ref={ref}
-      href={href}
+      {...(type ? { type, disabled } : { href })}
       onClick={onClick}
       style={{ x, y }}
       onMouseMove={onMove}
@@ -69,26 +78,35 @@ export function MagneticButton({
         className
       )}
     >
-      {/* Accent wipe rising from the bottom edge on hover. */}
-      <span
-        aria-hidden="true"
-        className={cn(
-          "absolute inset-0 origin-bottom scale-y-0 transition-transform duration-500 ease-soft group-hover:scale-y-100",
-          variant === "solid" ? "bg-accent" : "bg-paper"
-        )}
-      />
+      {/* The accent button is filled with the site's gradient and answers a
+          hover by swelling it rather than wiping over it — a colour wipe on
+          top of the gradient would throw the harmony away. The others take
+          the wipe rising from the bottom edge. */}
+      {variant === "accent" ? (
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 bg-[linear-gradient(135deg,theme(colors.accent.DEFAULT)_0%,theme(colors.accent.warm)_100%)] transition-transform duration-[800ms] ease-button group-hover:scale-105"
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute inset-0 origin-bottom scale-y-0 transition-transform duration-500 ease-soft group-hover:scale-y-100",
+            variant === "solid" ? "bg-accent" : "bg-paper"
+          )}
+        />
+      )}
       <span
         className={cn(
           "relative z-10 transition-colors duration-500 ease-soft",
           variant === "solid" && "group-hover:text-paper",
-          variant === "outline" && "group-hover:text-ink",
-          variant === "accent" && "group-hover:text-ink"
+          variant === "outline" && "group-hover:text-ink"
         )}
       >
         <HoverStaggerLabel text={label} active={hover} />
       </span>
       {icon && <span className="relative z-10">{icon}</span>}
-    </motion.a>
+    </Tag>
   );
 }
 

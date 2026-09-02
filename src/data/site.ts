@@ -115,6 +115,15 @@ export const projects: Project[] = [
   },
 ];
 
+/**
+ * What the home page shows.
+ *
+ * The full list belongs to /projects; the home page carries a selection and
+ * sends the reader on for the rest, which is how the reference splits them
+ * too — four rows there, seven on the index.
+ */
+export const featuredProjects = projects.slice(0, 4);
+
 export const solutions = [
   {
     n: "01",
@@ -298,7 +307,7 @@ export const navLinks = [
   { label: "About Me", href: "/about" },
   { label: "Projects", href: "/projects" },
   { label: "Playground", href: "/playground" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Contact", href: "/contact" },
 ];
 export const socials = [
   { label: "Instagram", href: "#" },
@@ -443,42 +452,86 @@ export const honors = {
  * /projects and /playground
  * ------------------------------------------------------------------------- */
 
-export const projectsPage = {
-  /** Set edge to edge as one word, like the About masthead. */
-  title: "Projects",
-  intro:
-    "Selected work from the last few years — brand systems, interfaces, and the front-end that carries them.",
+/**
+ * The two index pages open on their title alone — no standfirst under it, as
+ * in the reference. The word is the whole opener and the work starts directly
+ * beneath it.
+ */
+export const projectsPage = { title: "Projects" };
+
+export const playgroundPage = { title: "Playground" };
+
+/* ---------------------------------------------------------------------------
+ * /contact
+ * ------------------------------------------------------------------------- */
+
+export const contactPage = {
+  title: "Contact",
+  quote: "Got an idea in mind? Let's connect and explore how I can bring it to life.",
+  phone: "+31 20 123 4567",
 };
 
-export const playgroundPage = {
-  title: "Playground",
-  intro: "Off-cuts, studies, and things made for their own sake.",
-};
+/**
+ * The eight questions the FAQ answers, in the order the reference asks them.
+ * Any number works — the column just grows.
+ */
+export const faqs = [
+  {
+    q: "Do you work with clients worldwide?",
+    a: "Yes, absolutely. I collaborate with clients globally — remotely and efficiently — across time zones.",
+  },
+  {
+    q: "What's your typical project turnaround time?",
+    a: "It depends on the scope, but most projects are completed within 3 to 6 weeks. Timelines are discussed upfront to ensure smooth delivery.",
+  },
+  {
+    q: "How do I get started with you?",
+    a: "Book a call or send a note through the form above. A paragraph about what you are building is plenty to start with.",
+  },
+  {
+    q: "Do you work with startups or only big brands?",
+    a: "Both. Whether you're a solo founder, a growing startup, or an established brand, I tailor solutions to fit your needs and budget.",
+  },
+  {
+    q: "Can you design and develop my website?",
+    a: "That is the usual arrangement — design through to a shipped front-end, handled by one person, so nothing is lost in the handover.",
+  },
+  {
+    q: "Do you offer support after the project is completed?",
+    a: "Yes. Every launch comes with a handover and a support window for the fixes and small additions that always follow.",
+  },
+  {
+    q: "What tools do you use?",
+    a: "Figma for design, React and TypeScript for the build, and whatever your project already runs on for the rest.",
+  },
+  {
+    q: "Do you provide content or just design?",
+    a: "Design and build are mine. I will shape copy you bring, and bring in a writer when a project needs one.",
+  },
+];
 
 /**
  * The playground wall.
  *
- * `span` is in rows of the masonry grid, which is what gives the columns their
- * stagger: a tile's height comes from its row span rather than from the
- * artwork, so the wall keeps its rhythm whatever aspect ratio the file has.
- * `wide` takes two columns.
+ * `ratio` is the frame's width over its height — the plate is cut to the same
+ * shape, so nothing is cropped. Rows are as tall as their tallest tile and the
+ * shorter ones simply stop, which is what leaves the wall its air: the grid is
+ * not there to be filled. `wide` takes two of the four columns.
  */
-export type WallTile = { src: string; alt: string; span: number; wide?: boolean };
+export type WallTile = { src: string; alt: string; ratio: number; wide?: boolean };
 
 export const playgroundWall: WallTile[] = [
-  { src: "/art/tile-01.svg", alt: "Study: a banded field over a dark ground", span: 26 },
-  { src: "/art/tile-02.svg", alt: "Study: stacked arcs in vermilion", span: 44 },
-  { src: "/art/tile-03.svg", alt: "Study: a single swept curve", span: 38 },
-  { src: "/art/tile-04.svg", alt: "Study: concentric rings, off centre", span: 26 },
-  { src: "/art/showcase-01.svg", alt: "Plate: a bloom against a near-black ground", span: 60, wide: true },
-  { src: "/art/tile-05.svg", alt: "Study: a diagonal rule and a soft bloom", span: 26 },
-  { src: "/art/tile-06.svg", alt: "Study: a grid dissolving at one corner", span: 26 },
-  { src: "/art/showcase-02.svg", alt: "Plate: two masses meeting on a seam", span: 32 },
-  { src: "/art/tile-07.svg", alt: "Study: a horizon with an ember above it", span: 32 },
-  { src: "/art/showcase-03.svg", alt: "Plate: a lit edge across the frame", span: 46, wide: true },
-  { src: "/art/tile-08.svg", alt: "Study: vertical bands, unevenly spaced", span: 40 },
-  { src: "/art/tile-09.svg", alt: "Study: a soft disc low in the frame", span: 30 },
-  { src: "/art/showcase-04.svg", alt: "Plate: overlapping planes in ember", span: 34 },
-  { src: "/art/showcase-05.svg", alt: "Plate: a long sweep across the ground", span: 28 },
-  { src: "/art/showcase-06.svg", alt: "Plate: scattered marks over a warm field", span: 42 },
+  { src: "/art/play-01.svg", alt: "Study: a banded field over a dark ground", ratio: 1.315 },
+  { src: "/art/play-02.svg", alt: "Study: stacked arcs in vermilion", ratio: 0.749 },
+  { src: "/art/play-03.svg", alt: "Study: contour lines drifting off the frame", ratio: 0.877 },
+  { src: "/art/play-04.svg", alt: "Study: loose shapes over an ember ground", ratio: 1.31 },
+  { src: "/art/play-05.svg", alt: "Plate: a specimen sheet, set large", ratio: 1.167, wide: true },
+  { src: "/art/play-06.svg", alt: "Study: vertical bars, unevenly spaced", ratio: 1.315 },
+  { src: "/art/play-07.svg", alt: "Study: an interface mock in near-black", ratio: 1.31 },
+  { src: "/art/play-08.svg", alt: "Study: contours crossing a warm field", ratio: 0.877 },
+  { src: "/art/play-09.svg", alt: "Study: a lettering specimen, cropped", ratio: 1.31 },
+  { src: "/art/play-10.svg", alt: "Plate: a mesh dissolving toward one corner", ratio: 1.233, wide: true },
+  { src: "/art/play-11.svg", alt: "Plate: overlapping planes in ember", ratio: 1.233, wide: true },
+  { src: "/art/play-12.svg", alt: "Study: bars against a deep ground", ratio: 1.31 },
+  { src: "/art/play-13.svg", alt: "Study: contour lines over vermilion", ratio: 0.877 },
 ];

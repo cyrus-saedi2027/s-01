@@ -224,4 +224,18 @@ for (let i = 1; i <= 6; i++) {
   write(`showcase-0${i}.svg`, 900, 675, MOTIFS[[1, 4, 0, 5, 2, 3][i - 1]], 4000 + i * 173);
 }
 
+// Playground wall. Each plate is cut to the ratio of the frame it goes in, so
+// the grid crops nothing — the wall's rhythm comes from the plates being
+// genuinely different shapes rather than from cropping one shape many ways.
+// The four wide ones (index 4, 9, 10) span two columns.
+const playShapes = [
+  [900, 684], [900, 1202], [900, 1027], [900, 687],
+  [1350, 1157], [900, 684], [900, 687], [900, 1027],
+  [900, 687], [1350, 1095], [1350, 1095], [900, 687], [900, 1027],
+];
+playShapes.forEach(([w, h], i) => {
+  write(`play-${String(i + 1).padStart(2, "0")}.svg`, w, h,
+        MOTIFS[[0, 2, 5, 3, 1, 4, 0, 5, 2, 1, 3, 4, 5][i]], 5000 + i * 197);
+});
+
 console.log(`wrote ${count} files to ${path.relative(ROOT, OUT)}`);

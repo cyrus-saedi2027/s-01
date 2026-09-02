@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { Reveal, MaskLine } from "../ui/Reveal";
 import { MagneticButton } from "../ui/MagneticButton";
-import { projects, type Project } from "@/data/site";
+import { featuredProjects, type Project } from "@/data/site";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MarqueeLabel } from "../ui/MarqueeLabel";
 
@@ -42,14 +42,14 @@ export function Works() {
             </h2>
           </div>
           <Reveal delay={0.2}>
-            <MagneticButton label="View all works" href="#projects" variant="outline" />
+            <MagneticButton label="View all works" href="/projects" variant="outline" />
           </Reveal>
         </div>
 
         {/* List */}
         <div ref={wrap} onMouseMove={onMove} className="relative">
           <ul className="border-t border-hair">
-            {projects.map((p, i) => (
+            {featuredProjects.map((p, i) => (
               <ProjectRow
                 key={p.title}
                 project={p}
@@ -85,7 +85,7 @@ export function Works() {
                   }}
                 >
                   <img
-                    src={projects[active].art}
+                    src={featuredProjects[active].art}
                     alt=""
                     className="h-full w-full object-cover"
                   />
@@ -131,7 +131,7 @@ function ProjectRow({
       className="group relative border-b border-hair"
     >
       <a
-        href="#projects"
+        href="/projects"
         data-cursor={desktop ? "view" : undefined}
         className="relative block px-1 py-8 md:py-10 lg:py-12"
       >
