@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated single-file bundle (see scripts/build-standalone.mjs)
+zaylamonroe-standalone.html
+zaylamonroe-embed.html

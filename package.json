@@ -8,7 +8,9 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:standalone": "vite build && node scripts/build-standalone.mjs",
+    "test:schedule": "esbuild --bundle --platform=node --format=esm --outfile=node_modules/.cache/schedule.test.mjs scripts/schedule.test.ts && node node_modules/.cache/schedule.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
