@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Vazirmatn:wght@300;400;500;700;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -86,5 +86,45 @@
     @apply bg-background text-foreground antialiased;
     font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer base {
+  /* ------------------------------------------------------------------
+   * Dental clinic palette. It redefines the same token names the rest of
+   * the app uses, so bg-card / text-foreground / bg-primary keep working
+   * unchanged inside this subtree - a theme swap, not a second system.
+   * Neutrals are biased toward the maroon rather than pure grey.
+   * ------------------------------------------------------------------ */
+  .theme-dental {
+    --background: 15 29% 97%;
+    --foreground: 345 27% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 345 27% 9%;
+    --muted: 12 20% 95%;
+    --muted-foreground: 345 10% 39%;
+    --primary: 350 85% 42%;
+    --primary-dark: 350 82% 34%;
+    --primary-light: 350 75% 52%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 343 66% 33%;
+    --accent-foreground: 0 0% 100%;
+    --border: 6 17% 87%;
+    --input: 12 20% 95%;
+    --ring: 350 85% 42%;
+  }
+
+  /* Inverted ground for the full-bleed hero */
+  .theme-dental-dark {
+    --background: 343 62% 17%;
+    --foreground: 0 0% 100%;
+    --card: 343 62% 17%;
+    --card-foreground: 0 0% 100%;
+    --muted: 343 45% 24%;
+    --muted-foreground: 350 18% 80%;
+    --primary: 0 0% 100%;
+    --primary-dark: 350 20% 92%;
+    --primary-foreground: 343 62% 17%;
+    --border: 345 30% 32%;
   }
 }
