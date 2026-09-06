@@ -103,6 +103,8 @@
     --card-foreground: 345 27% 9%;
     --muted: 12 20% 95%;
     --muted-foreground: 345 10% 39%;
+    --secondary: 345 13% 89%;
+    --secondary-foreground: 345 27% 9%;
     --primary: 350 85% 42%;
     --primary-dark: 350 82% 34%;
     --primary-light: 350 75% 52%;
@@ -137,6 +139,11 @@
    * ------------------------------------------------------------------ */
   .shape-arch {
     border-radius: 999px 999px 1.75rem 1.75rem;
+  }
+
+  /* Springs from a floor line: the base is square so it meets the frame edge */
+  .shape-arch-flat {
+    border-radius: 999px 999px 0 0;
   }
 
   .shape-organic {
