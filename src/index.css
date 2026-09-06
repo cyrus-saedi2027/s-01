@@ -128,3 +128,43 @@
     --border: 345 30% 32%;
   }
 }
+
+@layer components {
+  /* ------------------------------------------------------------------
+   * Curved masks for the media treatments. Organic radii use the
+   * eight-value form: the four horizontal radii, then the four vertical
+   * ones, so each corner bends on its own axis and no two corners match.
+   * ------------------------------------------------------------------ */
+  .shape-arch {
+    border-radius: 999px 999px 1.75rem 1.75rem;
+  }
+
+  .shape-organic {
+    border-radius: 58% 42% 47% 53% / 52% 46% 54% 48%;
+  }
+
+  .shape-organic-alt {
+    border-radius: 41% 59% 63% 37% / 47% 59% 41% 53%;
+  }
+
+  /* Slow drift between the two organic forms; the photo inside stays put */
+  @media (prefers-reduced-motion: no-preference) {
+    .shape-organic-drift {
+      animation: organic-drift 18s ease-in-out infinite alternate;
+    }
+  }
+
+  @keyframes organic-drift {
+    from {
+      border-radius: 58% 42% 47% 53% / 52% 46% 54% 48%;
+    }
+    to {
+      border-radius: 44% 56% 59% 41% / 45% 57% 43% 55%;
+    }
+  }
+
+  /* Curved band: a shallow ellipse on the top edge, straight elsewhere */
+  .shape-crest {
+    border-radius: 50% 50% 0 0 / 7rem 7rem 0 0;
+  }
+}
