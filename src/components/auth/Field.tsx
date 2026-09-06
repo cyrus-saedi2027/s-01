@@ -19,7 +19,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
 
   return (
     <div className="space-y-2">
-      <label htmlFor={inputId} className="block text-xs font-normal text-white/85">
+      <label htmlFor={inputId} className="block text-xs font-normal text-foreground/80">
         {label}
         {required && <span className="ml-1 text-primary">*</span>}
       </label>
@@ -33,10 +33,10 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${inputId}-error` : undefined}
           className={cn(
-            "h-10 w-full rounded-lg border border-white/[0.07] bg-input px-3.5 text-[0.8125rem] text-white/95",
+            "h-10 w-full rounded-lg border border-border bg-input px-3.5 text-[0.8125rem] text-foreground",
             "placeholder:text-muted-foreground/70 transition-colors duration-200 outline-none",
-            "focus:border-primary/70 focus:ring-2 focus:ring-primary/15",
-            error && "border-destructive/70 focus:border-destructive/70 focus:ring-destructive/15",
+            "focus:border-primary focus:ring-2 focus:ring-primary/25",
+            error && "border-destructive focus:border-destructive focus:ring-destructive/20",
             revealable && "pr-10",
             className,
           )}
@@ -47,7 +47,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
             type="button"
             onClick={() => setRevealed((v) => !v)}
             aria-label={revealed ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground transition-colors hover:text-white/80"
+            className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground transition-colors hover:text-foreground"
           >
             {revealed ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
           </button>

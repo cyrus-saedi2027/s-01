@@ -26,7 +26,7 @@ export function AuthFrame({ image, imageAlt, headline, caption, children }: Auth
 
   return (
     <div
-      className="w-full max-w-[1120px] bg-card shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)]"
+      className="w-full max-w-[1120px] bg-card shadow-[0_30px_70px_-28px_rgba(0,0,0,0.45)]"
       style={{
         borderRadius: "var(--frame-radius)",
         padding: "var(--frame-inset)",
@@ -49,7 +49,7 @@ export function AuthFrame({ image, imageAlt, headline, caption, children }: Auth
           />
 
           {/* Tonal wash: keeps the panel moody and the caption legible on any photo */}
-          <div className="absolute inset-0 bg-black/15" />
+          <div className="absolute inset-0 bg-black/5" />
           <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
 
           <div className="absolute inset-x-0 bottom-0 p-8 text-center sm:p-10">

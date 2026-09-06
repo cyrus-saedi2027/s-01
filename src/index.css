@@ -7,56 +7,58 @@
 @layer base {
   :root {
     /* Page: warm sage backdrop the frame floats on */
-    --background: 97 6% 59%;
-    --foreground: 0 0% 98%;
+    --background: 97 8% 55%;
+    --foreground: 96 9% 11%;
 
-    /* The big frame */
-    --card: 100 6% 4%;
-    --card-foreground: 0 0% 98%;
-    --popover: 100 6% 4%;
-    --popover-foreground: 0 0% 98%;
+    /* The big frame: warm bone, so photos read as prints on paper */
+    --card: 48 25% 92%;
+    --card-foreground: 96 9% 11%;
+    --popover: 48 25% 92%;
+    --popover-foreground: 96 9% 11%;
 
-    /* Sage accent: primary button, focus ring, required marks */
-    --primary: 83 26% 68%;
-    --primary-light: 83 30% 78%;
-    --primary-dark: 83 22% 56%;
-    --primary-foreground: 90 20% 8%;
+    /* Sage accent: deepened so it carries white text on a light ground */
+    --primary: 85 33% 35%;
+    --primary-light: 85 26% 54%;
+    --primary-dark: 85 34% 30%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 200 5% 12%;
-    --secondary-foreground: 0 0% 92%;
+    --secondary: 47 18% 85%;
+    --secondary-foreground: 96 9% 11%;
 
-    --muted: 200 5% 11%;
-    --muted-foreground: 100 3% 56%;
+    --muted: 47 18% 88%;
+    --muted-foreground: 92 7% 33%;
 
-    --accent: 83 26% 68%;
-    --accent-foreground: 90 20% 8%;
+    --accent: 85 32% 38%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 8 55% 62%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 140 40% 55%;
-    --success-foreground: 0 0% 98%;
-    --warning: 38 70% 60%;
-    --warning-foreground: 90 20% 8%;
+    --destructive: 4 60% 44%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 140 45% 30%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 75% 36%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 100 4% 14%;
-    --input: 200 5% 10%;
-    --ring: 83 26% 68%;
+    --border: 45 15% 64%;
+    --input: 47 20% 85%;
+    --ring: 85 32% 42%;
 
-    --banner-bg: 100 6% 4%;
-    --banner-foreground: 0 0% 98%;
-    --hero-gradient-start: 100 6% 6%;
-    --hero-gradient-end: 100 8% 2%;
+    --banner-bg: 48 25% 92%;
+    --banner-foreground: 96 9% 11%;
+    --hero-gradient-start: 48 25% 94%;
+    --hero-gradient-end: 47 20% 87%;
 
-    --sidebar-background: 100 6% 4%;
-    --sidebar-foreground: 0 0% 92%;
-    --sidebar-primary: 83 26% 68%;
-    --sidebar-primary-foreground: 90 20% 8%;
-    --sidebar-accent: 200 5% 11%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-border: 100 4% 14%;
-    --sidebar-ring: 83 26% 68%;
+    --sidebar-background: 48 25% 92%;
+    --sidebar-foreground: 96 9% 11%;
+    --sidebar-primary: 85 32% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 47 18% 88%;
+    --sidebar-accent-foreground: 96 9% 11%;
+    --sidebar-border: 47 17% 79%;
+    --sidebar-ring: 85 32% 42%;
 
     --radius: 0.5rem;
+
+    color-scheme: light;
 
     /* ------------------------------------------------------------------
      * Frame geometry — the whole point of this screen.

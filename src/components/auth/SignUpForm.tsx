@@ -52,7 +52,7 @@ export function SignUpForm() {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="animate-fade-in">
-      <h1 className="text-[1.375rem] font-normal tracking-[-0.01em] text-white">Create your account</h1>
+      <h1 className="text-[1.375rem] font-normal tracking-[-0.01em] text-foreground">Create your account</h1>
       <p className="mt-3.5 text-xs font-light leading-relaxed text-muted-foreground">
         Join a network of visionaries and unlock premium design resources tailored for you.
       </p>
@@ -107,31 +107,31 @@ export function SignUpForm() {
 
       <button
         type="submit"
-        className="mt-8 h-10 w-full rounded-lg bg-primary text-[0.8125rem] font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+        className="mt-8 h-10 w-full rounded-lg bg-primary text-[0.8125rem] font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
       >
         Create account
       </button>
 
       {submitted && (
-        <p className="mt-4 text-center text-[0.6875rem] text-primary" role="status">
+        <p className="mt-4 text-center text-[0.6875rem] text-primary-dark" role="status">
           Account details look good — you are all set.
         </p>
       )}
 
       <p className="mt-7 text-center text-xs font-light text-muted-foreground">
         Already have an account?{" "}
-        <a href="#sign-in" className="text-white/90 transition-colors hover:text-primary">
+        <a href="#sign-in" className="font-medium text-foreground transition-colors hover:text-primary-dark">
           Sign in
         </a>
       </p>
 
-      <p className="mt-14 text-center text-[0.625rem] font-light leading-relaxed text-muted-foreground/80">
+      <p className="mt-14 text-center text-[0.625rem] font-light leading-relaxed text-muted-foreground">
         By creating an account, you agree to our{" "}
-        <a href="#terms" className="font-medium text-white/85 transition-colors hover:text-primary">
+        <a href="#terms" className="font-medium text-foreground transition-colors hover:text-primary-dark">
           Terms of Service
         </a>{" "}
         and{" "}
-        <a href="#privacy" className="font-medium text-white/85 transition-colors hover:text-primary">
+        <a href="#privacy" className="font-medium text-foreground transition-colors hover:text-primary-dark">
           Privacy Policy
         </a>
         .
